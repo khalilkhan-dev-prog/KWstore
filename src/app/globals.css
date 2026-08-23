@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #F7F3EC;
+  color: #241F1A;
+}
+
+@layer components {
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-wider text-glow;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full bg-glow px-6 py-3 font-semibold text-white transition hover:bg-glowdark;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-full border border-ink/15 px-5 py-2.5 font-medium text-ink transition hover:bg-ink/5;
+  }
+  .field-label {
+    @apply mb-1 block text-sm font-medium text-ink/80;
+  }
+  .field-input {
+    @apply w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-glow focus:ring-2 focus:ring-glow/20;
+  }
+}
+
+/* moving shine used by the Flash Sale bar */
+@keyframes shine {
+  0%   { transform: translateX(0) skewX(-20deg); }
+  55%  { transform: translateX(420%) skewX(-20deg); }
+  100% { transform: translateX(420%) skewX(-20deg); }
+}
+.animate-shine {
+  animation: shine 4s ease-in-out infinite;
+}
