@@ -4,6 +4,7 @@ import { json, sameOriginOk } from "@/lib/http";
 import { getAdminFromRequest } from "@/lib/auth";
 import { z } from "zod";
 import { sanitizeText } from "@/lib/validation";
+import { revalidateTag } from "next/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,5 +72,6 @@ export async function PUT(req: NextRequest) {
   for (const [k, v] of entries) {
     await query(`INSERT INTO settings (key,value) VALUES ($1,$2) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value, updated_at=now()`, [k, v]);
   }
+  revalidateTag("settings");
   return json({ ok: true });
 }

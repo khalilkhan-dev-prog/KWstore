@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Catalog, { type CatalogProduct, type Banner, type FlashSale } from "@/components/Catalog";
-import type { Product } from "@/lib/data";
+import type { ProductListItem } from "@/lib/data";
 
 const FAQS = [
   { q: "How do I pay?", a: "Cash on delivery, or JazzCash / Easypaisa / Bank. No advance needed for COD." },
@@ -12,7 +12,7 @@ const FAQS = [
   { q: "What if the product has an issue?", a: "Contact us within 7 days and we'll arrange a replacement." },
 ];
 
-export default function HomeClient({ products, settings }: { products: Product[]; settings: Record<string, string> }) {
+export default function HomeClient({ products, settings }: { products: ProductListItem[]; settings: Record<string, string> }) {
   const [search, setSearch] = useState("");
   const storeName = settings.store_name || "kk new fashion";
   const currency = settings.currency || "PKR";
@@ -35,7 +35,7 @@ export default function HomeClient({ products, settings }: { products: Product[]
   };
 
   const catalogProducts: CatalogProduct[] = products.map((p) => ({
-    id: p.id, slug: p.slug, name: p.name, price: p.price, compare_at: p.compare_at, image_url: p.image_url,
+    id: p.id, slug: p.slug, name: p.name, price: p.price, compare_at: p.compare_at, has_image: p.has_image,
     category: p.category, rating: p.rating, sold_count: p.sold_count, stock: p.stock,
     badge_free_delivery: p.badge_free_delivery, badge_best_seller: p.badge_best_seller,
     badge_trending: p.badge_trending, badge_low_stock: p.badge_low_stock,

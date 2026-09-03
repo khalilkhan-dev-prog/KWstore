@@ -6,7 +6,7 @@ import { OverlayBadges, InfoBadges } from "@/components/Badges";
 
 export interface CatalogProduct {
   id: string; slug: string; name: string; price: number; compare_at: number | null;
-  image_url: string | null; category: string | null; rating: number | null; sold_count: number | null;
+  has_image: boolean; category: string | null; rating: number | null; sold_count: number | null;
   stock: number;
   badge_free_delivery: boolean; badge_best_seller: boolean;
   badge_trending: boolean; badge_low_stock: boolean;
@@ -248,9 +248,10 @@ export default function Catalog({ products, currency, search, banners, flash }: 
                 <div className="relative aspect-square overflow-hidden bg-clay">
                   {discount > 0 && <span className="absolute left-2 top-2 z-10 rounded-full bg-glow px-2 py-0.5 text-xs font-semibold text-white shadow-soft">{discount}% OFF</span>}
                   <OverlayBadges p={p} />
-                  {p.image_url ? (
+                  {p.has_image ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.image_url} alt={p.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
+                    <img src={`/api/img/${p.id}`} alt={p.name} loading="lazy" decoding="async"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center p-3 text-center font-display text-sm font-semibold text-ink/60">{p.name}</div>
                   )}

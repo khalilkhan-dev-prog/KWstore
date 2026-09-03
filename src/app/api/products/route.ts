@@ -3,6 +3,7 @@ import { query } from "@/lib/db";
 import { json, sameOriginOk } from "@/lib/http";
 import { getAdminFromRequest } from "@/lib/auth";
 import { productSchema, slugify } from "@/lib/validation";
+import { revalidateTag } from "next/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,5 +47,6 @@ export async function POST(req: NextRequest) {
      d.category || "Other", d.rating ?? 4.8, d.sold_count ?? 0,
      d.badge_free_delivery, d.badge_best_seller, d.badge_trending, d.badge_low_stock]
   );
+  revalidateTag("products");
   return json({ ok: true, id: r.rows[0].id }, 201);
 }

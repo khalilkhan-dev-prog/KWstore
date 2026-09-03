@@ -3,13 +3,13 @@ import Link from "next/link";
 import OrderForm from "@/components/OrderForm";
 import ProductGallery from "@/components/ProductGallery";
 import { OverlayBadges, InfoBadges } from "@/components/Badges";
-import { getProductBySlug, getProducts, getSettings } from "@/lib/data";
+import { getProductBySlug, getRelatedProducts, getSettings, imgUrl } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
-  const [product, all, settings] = await Promise.all([
-    getProductBySlug(params.slug), getProducts(), getSettings(),
+  const [product, others, settings] = await Promise.all([
+    getProductBySlug(params.slug), getRelatedProducts(params.slug), getSettings(),
   ]);
   if (!product) notFound();
 
@@ -19,8 +19,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const fmt = (n: number) => `${currency} ${n.toLocaleString("en-PK")}`;
   const discount = product.compare_at && product.compare_at > product.price
     ? Math.round(((product.compare_at - product.price) / product.compare_at) * 100) : 0;
-  const images = [product.image_url ?? "", ...(product.gallery ?? [])].filter(Boolean) as string[];
-  const others = all.filter((p) => p.slug !== product.slug).slice(0, 10);
+  // photos ab alag address se aati hain (browser inhein cache kar leta hai)
+  const images = Array.from({ length: product.image_count }, (_, i) => imgUrl(product.id, i));
 
   const pay = {
     jazzcash: settings.pay_jazzcash || "",
@@ -98,9 +98,10 @@ export default async function ProductPage({ params }: { params: { slug: string }
                     <div className="relative aspect-square overflow-hidden bg-clay">
                       {d > 0 && <span className="absolute left-2 top-2 z-10 rounded-full bg-glow px-2 py-0.5 text-xs font-semibold text-white shadow-soft">{d}% OFF</span>}
                       <OverlayBadges p={p} />
-                      {p.image_url ? (
+                      {p.has_image ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.image_url} alt={p.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
+                        <img src={`/api/img/${p.id}`} alt={p.name} loading="lazy" decoding="async"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
                       ) : (<div className="flex h-full w-full items-center justify-center p-2 text-center font-display text-xs font-semibold text-ink/60">{p.name}</div>)}
                     </div>
                     <div className="flex flex-1 flex-col p-2.5">

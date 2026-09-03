@@ -4,6 +4,7 @@ import { json, sameOriginOk } from "@/lib/http";
 import { getAdminFromRequest } from "@/lib/auth";
 import { z } from "zod";
 import { sanitizeText } from "@/lib/validation";
+import { revalidateTag } from "next/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -55,5 +56,6 @@ export async function PUT(req: NextRequest) {
     return json({ error: "Database mein save nahi hua: " + (e?.message ?? "unknown") }, 500);
   }
 
+  revalidateTag("settings");
   return json({ ok: true, count: parsed.data.banners.length });
 }

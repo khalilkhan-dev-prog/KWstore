@@ -3,6 +3,7 @@ import { query } from "@/lib/db";
 import { json } from "@/lib/http";
 import { getAdminFromRequest } from "@/lib/auth";
 import { productUpdateSchema } from "@/lib/validation";
+import { revalidateTag } from "next/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,11 +30,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   };
   for (const [k, v] of Object.entries(map)) { if (v !== undefined) { cols.push(`${k}=$${i++}`); vals.push(v); } }
   if (cols.length) { vals.push(params.id); await query(`UPDATE products SET ${cols.join(",")} WHERE id=$${i}`, vals); }
+  revalidateTag("products");
   return json({ ok: true });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   if (!getAdminFromRequest(req)) return json({ error: "Unauthorized" }, 401);
   await query("DELETE FROM products WHERE id=$1", [params.id]);
+  revalidateTag("products");
   return json({ ok: true });
 }
