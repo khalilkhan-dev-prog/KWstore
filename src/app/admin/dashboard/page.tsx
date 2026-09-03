@@ -22,6 +22,20 @@ export default function Dashboard() {
   const [status, setStatus] = useState("all");
   const [open, setOpen] = useState<Order | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [shop, setShop] = useState<{ name: string; whatsapp: string }>({ name: "", whatsapp: "" });
+
+  // slip ke upar shop ka naam aur WhatsApp number dikhane ke liye
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => (r.ok ? r.json() : { settings: {} }))
+      .then((d) =>
+        setShop({
+          name: d.settings?.store_name ?? "",
+          whatsapp: d.settings?.support_whatsapp ?? "",
+        })
+      )
+      .catch(() => {});
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -50,6 +64,125 @@ export default function Dashboard() {
   }
 
   const fmt = (n: number) => `PKR ${Number(n).toLocaleString("en-PK")}`;
+
+  /* ---------------- PRINT SLIPS ---------------- */
+
+  // HTML mein khatarnaak nishan na jayein
+  function esc(v: unknown) {
+    return String(v ?? "").replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string)
+    );
+  }
+
+  function slipHtml(o: Order) {
+    const isCod = o.payment_method === "cod";
+    const isPaid = !isCod && o.payment_status === "paid";
+    const collect = isCod || !isPaid;
+
+    const money = `PKR ${Number(o.total_amount).toLocaleString("en-PK")}`;
+    const date = new Date(o.created_at).toLocaleString("en-PK", {
+      day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+    });
+
+    return `
+  <div class="slip">
+    <div class="head">
+      <div>
+        <div class="shop">${esc(shop.name || "Store")}</div>
+        ${shop.whatsapp ? `<div class="muted">WhatsApp: ${esc(shop.whatsapp)}</div>` : ""}
+      </div>
+      <div class="right">
+        <div class="ordno">ORDER #${esc(o.order_number)}</div>
+        <div class="muted">${esc(date)}</div>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="label">DELIVER TO</div>
+      <div class="name">${esc(o.full_name)}</div>
+      <div class="phone">${esc(o.phone)}</div>
+      <div class="addr">${esc(o.address)}</div>
+      <div class="addr"><b>${esc(o.city)}</b></div>
+    </div>
+
+    <table class="items">
+      <tr><th>Item</th><th class="qty">Qty</th><th class="amt">Amount</th></tr>
+      <tr>
+        <td>${esc(o.product_name)}</td>
+        <td class="qty">${esc(o.quantity)}</td>
+        <td class="amt">${esc(money)}</td>
+      </tr>
+      <tr class="total">
+        <td colspan="2"><b>TOTAL</b></td>
+        <td class="amt"><b>${esc(money)}</b></td>
+      </tr>
+    </table>
+
+    <div class="${collect ? "pay collect" : "pay paid"}">
+      ${
+        collect
+          ? `COLLECT ${esc(money)} ON DELIVERY${isCod ? "" : ` &nbsp;(${esc(o.payment_method.toUpperCase())} unpaid)`}`
+          : `ALREADY PAID &middot; ${esc(o.payment_method.toUpperCase())} &mdash; DO NOT COLLECT CASH`
+      }
+    </div>
+
+    ${o.notes ? `<div class="notes"><b>Note:</b> ${esc(o.notes)}</div>` : ""}
+    ${o.payment_reference ? `<div class="notes"><b>Payment ref:</b> ${esc(o.payment_reference)}</div>` : ""}
+
+    <div class="foot">Thank you for shopping with ${esc(shop.name || "us")}!</div>
+  </div>`;
+  }
+
+  function printOrders(list: Order[]) {
+    if (list.length === 0) { alert("Print karne ke liye koi order nahi mila."); return; }
+
+    const w = window.open("", "_blank", "width=820,height=900");
+    if (!w) { alert("Browser ne naya window rok diya. Address bar ke daayein 'pop-up allow' karein."); return; }
+
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8">
+<title>Order slips</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; padding:16px; font-family: Arial, Helvetica, sans-serif; color:#1F2933; background:#f4f4f4; }
+  .slip { background:#fff; border:1px solid #ddd; border-radius:8px; padding:20px; max-width:720px; margin:0 auto 16px; }
+  .head { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #E8724C; padding-bottom:10px; }
+  .shop { font-size:20px; font-weight:bold; }
+  .right { text-align:right; }
+  .ordno { font-size:18px; font-weight:bold; color:#C2410C; }
+  .muted { font-size:12px; color:#666; margin-top:2px; }
+  .box { border:1px dashed #bbb; border-radius:6px; padding:12px; margin-top:14px; }
+  .label { font-size:10px; letter-spacing:1px; color:#888; margin-bottom:4px; }
+  .name { font-size:17px; font-weight:bold; }
+  .phone { font-size:16px; font-weight:bold; margin-top:2px; }
+  .addr { font-size:14px; margin-top:3px; line-height:1.4; }
+  table.items { width:100%; border-collapse:collapse; margin-top:14px; font-size:14px; }
+  table.items th { text-align:left; background:#f3f3f3; padding:8px; font-size:11px; letter-spacing:.5px; color:#555; }
+  table.items td { padding:9px 8px; border-bottom:1px solid #eee; }
+  .qty { text-align:center; width:60px; }
+  .amt { text-align:right; width:130px; }
+  tr.total td { border-bottom:none; border-top:2px solid #333; font-size:16px; padding-top:10px; }
+  .pay { margin-top:14px; padding:12px; border-radius:6px; text-align:center; font-size:16px; font-weight:bold; }
+  .pay.collect { background:#FDEBD3; border:2px solid #E8724C; color:#8a3a12; }
+  .pay.paid { background:#E4F1E8; border:2px solid #3F7D5B; color:#2E5C43; }
+  .notes { margin-top:10px; font-size:13px; color:#444; }
+  .foot { margin-top:14px; padding-top:10px; border-top:1px solid #eee; text-align:center; font-size:11px; color:#888; }
+  .bar { max-width:720px; margin:0 auto 14px; text-align:center; }
+  .bar button { background:#E8724C; color:#fff; border:0; padding:10px 26px; border-radius:20px; font-size:15px; font-weight:bold; cursor:pointer; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .bar { display:none; }
+    .slip { border:none; margin:0; max-width:none; page-break-after:always; }
+    .slip:last-child { page-break-after:auto; }
+  }
+</style></head><body>
+<div class="bar"><button onclick="window.print()">🖨️ Print</button></div>
+${list.map(slipHtml).join("")}
+</body></html>`);
+
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 400);
+  }
   const badge = (s: string) => ({
     new: "bg-amber/20 text-amber", confirmed: "bg-leaf/15 text-leaf", shipped: "bg-glow/15 text-glowdark",
     delivered: "bg-leaf/20 text-leaf", cancelled: "bg-ink/10 text-ink/50",
@@ -87,6 +220,19 @@ export default function Dashboard() {
             <option value="all">All statuses</option>
             {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
+
+          <button
+            onClick={() => printOrders(orders.filter((o) => o.status === "new"))}
+            className="rounded-full bg-glow px-4 py-2 text-sm font-semibold text-white transition hover:bg-glowdark"
+            title="Sab naye orders ki slips ek sath">
+            🖨️ Print new ({orders.filter((o) => o.status === "new").length})
+          </button>
+          <button
+            onClick={() => printOrders(orders)}
+            className="rounded-full border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink/70 transition hover:border-glow hover:text-glowdark"
+            title="Jo orders is waqt list mein dikh rahe hain, sab ki slips">
+            Print all shown
+          </button>
         </div>
 
         {loading ? (
@@ -126,8 +272,9 @@ export default function Dashboard() {
                         {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 whitespace-nowrap">
                       <button onClick={() => setOpen(o)} className="text-glow hover:underline">View</button>
+                      <button onClick={() => printOrders([o])} className="ml-3 text-ink/50 hover:text-glowdark hover:underline" title="Is order ki slip print karein">🖨️</button>
                     </td>
                   </tr>
                 ))}
@@ -157,6 +304,8 @@ export default function Dashboard() {
               {open.payment_reference && <p><b>Reference:</b> {open.payment_reference}</p>}
             </div>
             <div className="mt-5 flex flex-wrap gap-2">
+              <button onClick={() => printOrders([open])}
+                className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">🖨️ Print slip</button>
               <a href={`https://wa.me/92${open.phone.replace(/^0/, "").replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer"
                 className="rounded-full bg-leaf px-4 py-2 text-sm font-semibold text-white">WhatsApp customer</a>
               {open.payment_method !== "cod" && open.payment_status !== "paid" && (
