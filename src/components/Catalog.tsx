@@ -93,7 +93,7 @@ export default function Catalog({ products, currency, search, banners, flash }: 
   useEffect(() => {
     if (slides.length < 2) return;
     setSlide((s) => (s < slides.length ? s : 0));
-    const t = setInterval(() => setSlide((s) => (s + 1) % slides.length), 4000);
+    const t = setInterval(() => setSlide((s) => (s + 1) % slides.length), 2000);
     return () => clearInterval(t);
   }, [slides.length]);
 
@@ -126,14 +126,14 @@ export default function Catalog({ products, currency, search, banners, flash }: 
                 <div
                   key={i}
                   aria-hidden={i !== slide}
-                  className={`absolute inset-0 flex items-center transition-opacity duration-700 ease-in-out ${
+                  className={`absolute inset-0 flex items-center transition-opacity duration-300 ease-in-out ${
                     i === slide ? "opacity-100" : "pointer-events-none opacity-0"
                   }`}
                   style={s.image_url ? undefined : { background: `linear-gradient(135deg, ${th.from}, ${th.to})` }}
                 >
                   {s.image_url && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.image_url} alt={s.title || "Banner"} className="absolute inset-0 h-full w-full object-cover" />
+                    <img src={s.image_url} alt={s.title || "Banner"} loading="eager" decoding="async" fetchPriority={i === 0 ? "high" : "low"} className="absolute inset-0 h-full w-full object-cover" />
                   )}
                   {s.image_url && txt && (
                     <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-transparent" />
