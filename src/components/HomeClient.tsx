@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import Catalog, { type CatalogProduct, type Banner, type FlashSale } from "@/components/Catalog";
+import BottomTabs from "@/components/BottomTabs";
 import type { ProductListItem } from "@/lib/data";
 
 const FAQS = [
@@ -17,6 +18,7 @@ export default function HomeClient({ products, settings }: { products: ProductLi
   const [menuOpen, setMenuOpen] = useState(false);
   const [cat, setCat] = useState("All");
   const [categories, setCategories] = useState<string[]>(["All"]);
+  const searchRef = useRef<HTMLInputElement>(null);
   const storeName = settings.store_name || "kk new fashion";
   const currency = settings.currency || "PKR";
   const whatsapp = (settings.support_whatsapp || "").replace(/[^0-9]/g, "");
@@ -59,7 +61,7 @@ export default function HomeClient({ products, settings }: { products: ProductLi
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-ink/40">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
             </svg>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products…"
+            <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products…"
               className="w-full bg-transparent px-2 py-2 text-sm text-ink outline-none placeholder:text-ink/40" />
             <button type="button" onClick={() => document.getElementById("grid")?.scrollIntoView({ behavior: "smooth" })}
               className="m-1 rounded-lg bg-glow px-3 py-1.5 text-sm font-semibold text-white hover:bg-glowdark">Search</button>
@@ -153,6 +155,17 @@ export default function HomeClient({ products, settings }: { products: ProductLi
           </div>
         </div>
       </footer>
+
+      <BottomTabs
+        active={menuOpen ? "categories" : "home"}
+        whatsapp={whatsapp}
+        onHome={() => { setCat("All"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+        onCategories={() => setMenuOpen(true)}
+        onSearch={() => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          setTimeout(() => searchRef.current?.focus(), 350);
+        }}
+      />
     </main>
   );
 }
