@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+
 import Catalog, { type CatalogProduct, type Banner, type FlashSale } from "@/components/Catalog";
 import type { ProductListItem } from "@/lib/data";
 
@@ -14,6 +14,9 @@ const FAQS = [
 
 export default function HomeClient({ products, settings }: { products: ProductListItem[]; settings: Record<string, string> }) {
   const [search, setSearch] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [cat, setCat] = useState("All");
+  const [categories, setCategories] = useState<string[]>(["All"]);
   const storeName = settings.store_name || "kk new fashion";
   const currency = settings.currency || "PKR";
   const whatsapp = (settings.support_whatsapp || "").replace(/[^0-9]/g, "");
@@ -44,7 +47,13 @@ export default function HomeClient({ products, settings }: { products: ProductLi
   return (
     <main>
       <header className="sticky top-0 z-40 border-b border-ink/10 bg-cream/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5">
+        <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
+          <button type="button" onClick={() => setMenuOpen(true)} aria-label="Menu"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-ink/10 bg-white text-ink/70 transition hover:border-glow hover:text-glow">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-5 w-5">
+              <path d="M3 6h18M3 12h18M3 18h18" />
+            </svg>
+          </button>
           <span className="hidden shrink-0 font-display text-xl font-semibold text-glow sm:block md:text-2xl">{storeName}</span>
           <div className="flex flex-1 items-center rounded-xl border-2 border-glow bg-white pl-3">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-ink/40">
@@ -64,9 +73,58 @@ export default function HomeClient({ products, settings }: { products: ProductLi
         </div>
       </header>
 
-      <Catalog products={catalogProducts} currency={currency} search={search} banners={banners} flash={flash} />
+      {/* ---- side menu ---- */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 flex" onClick={() => setMenuOpen(false)}>
+          <div className="absolute inset-0 bg-ink/45 backdrop-blur-sm" />
+          <nav className="relative flex h-full w-72 max-w-[82vw] flex-col bg-cream shadow-card" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-ink/10 px-5 py-4">
+              <span className="font-display text-lg font-semibold text-glow">{storeName}</span>
+              <button onClick={() => setMenuOpen(false)} aria-label="Close menu" className="text-2xl leading-none text-ink/40 hover:text-ink">×</button>
+            </div>
 
-      <section className="bg-cream py-12">
+            <div className="flex-1 overflow-y-auto px-3 py-3">
+              <button onClick={() => { setCat("All"); setMenuOpen(false); document.getElementById("grid")?.scrollIntoView({ behavior: "smooth" }); }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left font-medium hover:bg-white">
+                <span>🏠</span> All products
+              </button>
+
+              {categories.length > 1 && (
+                <>
+                  <p className="mt-3 px-3 text-xs font-semibold uppercase tracking-wide text-ink/40">Categories</p>
+                  {categories.filter((c) => c !== "All").map((c) => (
+                    <button key={c}
+                      onClick={() => { setCat(c); setMenuOpen(false); document.getElementById("grid")?.scrollIntoView({ behavior: "smooth" }); }}
+                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition hover:bg-white ${cat === c ? "bg-white font-semibold text-glowdark" : "text-ink/75"}`}>
+                      {c}
+                      <span className="text-xs text-ink/30">{products.filter((p) => (p.category || "Other") === c).length}</span>
+                    </button>
+                  ))}
+                </>
+              )}
+
+              <p className="mt-3 px-3 text-xs font-semibold uppercase tracking-wide text-ink/40">Help</p>
+              <button onClick={() => { setMenuOpen(false); document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" }); }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink/75 hover:bg-white">
+                <span>❓</span> Frequently asked
+              </button>
+              <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer"
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink/75 hover:bg-white">
+                <span>💬</span> Chat on WhatsApp
+              </a>
+            </div>
+
+            <div className="border-t border-ink/10 px-5 py-4 text-xs text-ink/45">
+              Cash on delivery all over Pakistan
+            </div>
+          </nav>
+        </div>
+      )}
+
+      <Catalog products={catalogProducts} currency={currency} search={search} banners={banners} flash={flash}
+        cat={cat} setCat={setCat} onCategories={setCategories} />
+
+      <section id="faq" className="bg-cream py-12">
         <div className="mx-auto max-w-3xl px-4">
           <span className="eyebrow">Good to know</span>
           <h2 className="mt-2 font-display text-2xl font-semibold md:text-3xl">Frequently asked</h2>
@@ -91,7 +149,7 @@ export default function HomeClient({ products, settings }: { products: ProductLi
           </div>
           <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-cream/15 pt-6 text-sm text-cream/50 sm:flex-row">
             <span>© {new Date().getFullYear()} {storeName}. All rights reserved.</span>
-            <Link href="/admin/login" className="hover:text-cream">Admin</Link>
+            <span>Cash on delivery · All over Pakistan</span>
           </div>
         </div>
       </footer>

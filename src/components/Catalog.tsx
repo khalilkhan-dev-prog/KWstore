@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { OverlayBadges, InfoBadges } from "@/components/Badges";
 
@@ -82,26 +82,58 @@ function useCountdown(f: FlashSale) {
   };
 }
 
-export default function Catalog({ products, currency, search, banners, flash }: { products: CatalogProduct[]; currency: string; search: string; banners?: Banner[]; flash: FlashSale }) {
+export default function Catalog({ products, currency, search, banners, flash, cat, setCat, onCategories }: {
+  products: CatalogProduct[]; currency: string; search: string; banners?: Banner[]; flash: FlashSale;
+  cat: string; setCat: (c: string) => void; onCategories: (c: string[]) => void;
+}) {
   const slides = banners && banners.length > 0 ? banners : DEFAULT_BANNERS;
   const [slide, setSlide] = useState(0);
-  const [cat, setCat] = useState("All");
   const fmt = (n: number) => `${currency} ${n.toLocaleString("en-PK")}`;
   const { hh, mm, ss, dd, days, ready, finished } = useCountdown(flash);
+
+
   const showFlash = flash.on && ready && !finished;
 
+  const [paused, setPaused] = useState(false);
+  const touch = useRef<{ x: number; y: number } | null>(null);
+
   useEffect(() => {
-    if (slides.length < 2) return;
+    if (slides.length < 2 || paused) return;
     setSlide((s) => (s < slides.length ? s : 0));
     const t = setInterval(() => setSlide((s) => (s + 1) % slides.length), 2000);
     return () => clearInterval(t);
-  }, [slides.length]);
+  }, [slides.length, paused]);
+
+  // ungli se banner khaskana (swipe)
+  function onTouchStart(e: React.TouchEvent) {
+    const t = e.touches[0];
+    touch.current = { x: t.clientX, y: t.clientY };
+    setPaused(true);
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    const start = touch.current;
+    touch.current = null;
+    if (start && slides.length > 1) {
+      const t = e.changedTouches[0];
+      const dx = t.clientX - start.x;
+      const dy = t.clientY - start.y;
+      // sirf tab jab ungli seedhi baaein/daaein chali ho (upar-neeche scroll na ho)
+      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) {
+        setSlide((i) => (dx < 0 ? (i + 1) % slides.length : (i - 1 + slides.length) % slides.length));
+      }
+    }
+    // 6 second baad khud chalna dobara shuru
+    setTimeout(() => setPaused(false), 6000);
+  }
 
   const categories = useMemo(() => {
     const set = new Set<string>();
     products.forEach((p) => { if (p.category) set.add(p.category); });
     return ["All", ...Array.from(set)];
   }, [products]);
+
+  // menu ke liye categories parent ko bhej dein
+  useEffect(() => { onCategories(categories); }, [categories.join("|")]);
 
   const filtered = useMemo(() => {
     let list = products;
@@ -117,7 +149,8 @@ export default function Catalog({ products, currency, search, banners, flash }: 
       <div className="mx-auto max-w-6xl px-4">
         {/* Auto banner — pictures & writing come from Admin > Settings */}
         <div className="group/ban mt-3">
-          <div className="relative h-[150px] overflow-hidden rounded-2xl bg-clay md:h-[230px]">
+          <div className="relative h-[150px] touch-pan-y select-none overflow-hidden rounded-2xl bg-clay md:h-[230px]"
+            onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
             {slides.map((s, i) => {
               const th = THEMES[s.theme ?? "orange"] ?? THEMES.orange;
               const txt = !!(s.eyebrow || s.title || s.subtitle || s.button_text);
@@ -170,12 +203,12 @@ export default function Catalog({ products, currency, search, banners, flash }: 
             {slides.length > 1 && (
               <>
                 <button type="button" aria-label="Previous banner"
-                  onClick={() => setSlide((i) => (i - 1 + slides.length) % slides.length)}
+                  onClick={() => { setPaused(true); setSlide((i) => (i - 1 + slides.length) % slides.length); setTimeout(() => setPaused(false), 6000); }}
                   className="absolute left-2 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white opacity-0 backdrop-blur transition hover:bg-black/50 group-hover/ban:opacity-100 md:flex">
                   ‹
                 </button>
                 <button type="button" aria-label="Next banner"
-                  onClick={() => setSlide((i) => (i + 1) % slides.length)}
+                  onClick={() => { setPaused(true); setSlide((i) => (i + 1) % slides.length); setTimeout(() => setPaused(false), 6000); }}
                   className="absolute right-2 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white opacity-0 backdrop-blur transition hover:bg-black/50 group-hover/ban:opacity-100 md:flex">
                   ›
                 </button>
@@ -186,7 +219,7 @@ export default function Catalog({ products, currency, search, banners, flash }: 
           {slides.length > 1 && (
             <div className="mt-2 flex justify-center gap-1.5">
               {slides.map((_, i) => (
-                <button key={i} onClick={() => setSlide(i)} aria-label={`Slide ${i + 1}`}
+                <button key={i} onClick={() => { setPaused(true); setSlide(i); setTimeout(() => setPaused(false), 6000); }} aria-label={`Slide ${i + 1}`}
                   className={`h-2 rounded-full transition-all ${i === slide ? "w-5 bg-glow" : "w-2 bg-ink/20"}`} />
               ))}
             </div>
@@ -250,7 +283,7 @@ export default function Catalog({ products, currency, search, banners, flash }: 
                   <OverlayBadges p={p} />
                   {p.has_image ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={`/api/img/${p.id}`} alt={p.name} loading="lazy" decoding="async"
+                    <img src={`/api/img/${p.id}`} alt="" loading="lazy" decoding="async"
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center p-3 text-center font-display text-sm font-semibold text-ink/60">{p.name}</div>
@@ -260,7 +293,7 @@ export default function Catalog({ products, currency, search, banners, flash }: 
                   <h3 className="min-h-[2.4em] text-[13px] font-medium leading-snug line-clamp-2 transition group-hover:text-glowdark">{p.name}</h3>
                   <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
                     <span className="text-[15px] font-bold text-glowdark">{fmt(p.price)}</span>
-                    {p.compare_at && <span className="text-[11px] text-ink/40 line-through">{fmt(p.compare_at)}</span>}
+                    {p.compare_at && p.compare_at > p.price && <span className="text-[11px] text-ink/40 line-through">{fmt(p.compare_at)}</span>}
                   </div>
                   {/* rating + sold */}
                   <div className="mt-0.5 flex items-center gap-1 text-[11px] text-ink/50">

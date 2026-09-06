@@ -100,7 +100,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
                       <OverlayBadges p={p} />
                       {p.has_image ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={`/api/img/${p.id}`} alt={p.name} loading="lazy" decoding="async"
+                        <img src={`/api/img/${p.id}`} alt="" loading="lazy" decoding="async"
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
                       ) : (<div className="flex h-full w-full items-center justify-center p-2 text-center font-display text-xs font-semibold text-ink/60">{p.name}</div>)}
                     </div>
@@ -108,7 +108,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
                       <h3 className="min-h-[2.4em] text-[13px] font-medium leading-snug line-clamp-2 transition group-hover:text-glowdark">{p.name}</h3>
                       <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
                         <span className="text-[15px] font-bold text-glowdark">{fmt(p.price)}</span>
-                        {p.compare_at && <span className="text-[11px] text-ink/40 line-through">{fmt(p.compare_at)}</span>}
+                        {p.compare_at && p.compare_at > p.price && <span className="text-[11px] text-ink/40 line-through">{fmt(p.compare_at)}</span>}
                       </div>
                       <div className="mt-0.5 flex items-center gap-1 text-[11px] text-ink/50">
                         <span className="text-amber">★</span>
