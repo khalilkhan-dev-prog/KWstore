@@ -54,7 +54,8 @@ export async function GET(req: NextRequest) {
 
   const { rows } = await query(
     `SELECT id,order_number,product_name,full_name,phone,address,city,quantity,total_amount::float8 AS total_amount,
-            notes,status,payment_method,payment_status,payment_reference,created_at
+            notes,status,payment_method,payment_status,payment_reference,created_at,
+            confirm_sent_at,confirmed_at,courier,tracking_number,tracking_sent_at
        FROM orders ${whereSql} ORDER BY created_at DESC LIMIT 200`, params
   );
   return json({ orders: rows });

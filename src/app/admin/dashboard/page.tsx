@@ -10,7 +10,21 @@ interface Order {
   id: string; order_number: number; product_name: string; full_name: string; phone: string;
   address: string; city: string; quantity: number; total_amount: number; notes: string | null;
   status: string; payment_method: string; payment_status: string; payment_reference: string | null; created_at: string;
+  confirm_sent_at: string | null; confirmed_at: string | null;
+  courier: string | null; tracking_number: string | null; tracking_sent_at: string | null;
 }
+
+// Pakistan ke maash'hoor courier aur unke tracking safhe
+const COURIERS: { id: string; name: string; url: (t: string) => string }[] = [
+  { id: "postex",   name: "PostEx",       url: (t) => `https://postex.pk/tracking?trackingNumber=${encodeURIComponent(t)}` },
+  { id: "leopards", name: "Leopards",     url: (t) => `https://leopardscourier.com/tracking?tracking_number=${encodeURIComponent(t)}` },
+  { id: "tcs",      name: "TCS",          url: (t) => `https://www.tcsexpress.com/track/${encodeURIComponent(t)}` },
+  { id: "trax",     name: "Trax",         url: (t) => `https://sonic.pk/tracking?cn=${encodeURIComponent(t)}` },
+  { id: "mnp",      name: "M&P",          url: (t) => `https://mulphilog.com/track-shipment/?cn=${encodeURIComponent(t)}` },
+  { id: "other",    name: "Doosra",       url: () => "" },
+];
+
+const courierOf = (id: string | null) => COURIERS.find((c) => c.id === id);
 
 const STATUSES = ["new", "confirmed", "shipped", "delivered", "cancelled"];
 
@@ -64,6 +78,94 @@ export default function Dashboard() {
   }
 
   const fmt = (n: number) => `PKR ${Number(n).toLocaleString("en-PK")}`;
+  const waNum = (phone: string) => `92${phone.replace(/^0/, "").replace(/[^0-9]/g, "")}`;
+
+  /* ---------------- CONFIRMATION ---------------- */
+
+  // COD ka sab se bara nuqsan: saman bhej do aur customer le hi na.
+  // Bhejne se PEHLE confirm karwana wo nuqsan bohat kam kar deta hai.
+  function confirmMessage(o: Order) {
+    const money = fmt(o.total_amount);
+    const pay = o.payment_method === "cod"
+      ? `Delivery par ${money} dene honge (Cash on Delivery).`
+      : `${o.payment_method.toUpperCase()} se ${money} ${o.payment_status === "paid" ? "mil chuke hain." : "abhi baaki hain."}`;
+
+    return [
+      `Assalam o Alaikum ${o.full_name} 👋`,
+      `${shop.name || "Hamari shop"} se aap ka order mila hai. Shukriya!`,
+      ``,
+      `📦 Order #${o.order_number}`,
+      `${o.product_name} × ${o.quantity}`,
+      `💰 Total: ${money}`,
+      `${pay}`,
+      ``,
+      `📍 Pata:`,
+      `${o.address}, ${o.city}`,
+      `📞 ${o.phone}`,
+      ``,
+      `Bara-e-meherbani ye do baatein check kar ke bata dein:`,
+      `1) Pata aur phone number theek hai?`,
+      `2) Order confirm hai?`,
+      ``,
+      `Confirm karne ke liye sirf "HAAN" likh dein — hum aaj hi bhej denge.`,
+      `Kuch badalna ho to abhi bata dein.`,
+    ].join("\n");
+  }
+
+  async function sendConfirm(o: Order) {
+    window.open(`https://wa.me/${waNum(o.phone)}?text=${encodeURIComponent(confirmMessage(o))}`, "_blank");
+    await fetch(`/api/orders/${o.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mark_confirm_sent: true }),
+    });
+    load();
+  }
+
+  /* ---------------- TRACKING ---------------- */
+
+  async function saveTracking(o: Order, courier: string, tracking: string) {
+    await fetch(`/api/orders/${o.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ courier, tracking_number: tracking }),
+    });
+    load();
+  }
+
+  function trackingMessage(o: Order, courier: string, tracking: string) {
+    const c = courierOf(courier);
+    const link = c?.url(tracking) || "";
+    return [
+      `Assalam o Alaikum ${o.full_name} 👋`,
+      `Aap ka order #${o.order_number} bhej diya gaya hai! 🚚`,
+      ``,
+      `${o.product_name} × ${o.quantity}`,
+      `Courier: ${c?.name || courier}`,
+      `Tracking number: ${tracking}`,
+      link ? `\nYahan se dekh sakte hain:\n${link}` : "",
+      ``,
+      o.payment_method === "cod" || o.payment_status !== "paid"
+        ? `Delivery par ${fmt(o.total_amount)} tayyar rakhein.`
+        : `Aap ki payment mil chuki hai — kuch dena nahi hai.`,
+      ``,
+      `Shukriya! 🙏`,
+    ].filter(Boolean).join("\n");
+  }
+
+  async function sendTracking(o: Order) {
+    if (!o.tracking_number) { alert("Pehle courier aur tracking number save karein."); return; }
+    window.open(
+      `https://wa.me/${waNum(o.phone)}?text=${encodeURIComponent(trackingMessage(o, o.courier || "", o.tracking_number))}`,
+      "_blank"
+    );
+    await fetch(`/api/orders/${o.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mark_tracking_sent: true }),
+    });
+    load();
+  }
+
+  // jinhein abhi tak confirmation nahi bheji gayi
+  const needConfirm = orders.filter((o) => o.status === "new" && !o.confirm_sent_at);
 
   /* ---------------- PRINT SLIPS ---------------- */
 
@@ -126,6 +228,7 @@ export default function Dashboard() {
       }
     </div>
 
+    ${o.courier || o.tracking_number ? `<div class="notes"><b>Courier:</b> ${esc(courierOf(o.courier)?.name ?? o.courier ?? "-")}${o.tracking_number ? ` &nbsp;·&nbsp; <b>Tracking:</b> ${esc(o.tracking_number)}` : ""}</div>` : ""}
     ${o.notes ? `<div class="notes"><b>Note:</b> ${esc(o.notes)}</div>` : ""}
     ${o.payment_reference ? `<div class="notes"><b>Payment ref:</b> ${esc(o.payment_reference)}</div>` : ""}
 
@@ -273,6 +376,18 @@ ${list.map(slipHtml).join("")}
                       </select>
                     </td>
                     <td className="p-3 whitespace-nowrap">
+                      {o.status === "new" && !o.confirm_sent_at && (
+                        <button onClick={() => sendConfirm(o)} title="WhatsApp par confirmation bhejein"
+                          className="mr-2 rounded-full bg-glow px-2.5 py-1 text-xs font-semibold text-white hover:bg-glowdark">
+                          Confirm
+                        </button>
+                      )}
+                      {o.confirm_sent_at && !o.confirmed_at && o.status === "new" && (
+                        <span className="mr-2 text-xs text-amber" title="Confirmation bheji gayi, jawab ka intezaar">⏳ sent</span>
+                      )}
+                      {o.tracking_number && (
+                        <span className="mr-2 text-xs text-leaf" title={`${courierOf(o.courier)?.name ?? o.courier}: ${o.tracking_number}`}>🚚</span>
+                      )}
                       <button onClick={() => setOpen(o)} className="text-glow hover:underline">View</button>
                       <button onClick={() => printOrders([o])} className="ml-3 text-ink/50 hover:text-glowdark hover:underline" title="Is order ki slip print karein">🖨️</button>
                     </td>
@@ -303,9 +418,19 @@ ${list.map(slipHtml).join("")}
               <p><b>Payment:</b> {open.payment_method.toUpperCase()} ({open.payment_status})</p>
               {open.payment_reference && <p><b>Reference:</b> {open.payment_reference}</p>}
             </div>
+            <CourierPanel
+              o={open}
+              onSave={(c, t) => saveTracking(open, c, t)}
+              onSend={() => sendTracking(open)}
+            />
+
             <div className="mt-5 flex flex-wrap gap-2">
               <button onClick={() => printOrders([open])}
                 className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">🖨️ Print slip</button>
+              <button onClick={() => sendConfirm(open)}
+                className="rounded-full bg-glow px-4 py-2 text-sm font-semibold text-white hover:bg-glowdark">
+                📞 {open.confirm_sent_at ? "Confirmation dobara bhejein" : "Confirmation bhejein"}
+              </button>
               <a href={`https://wa.me/92${open.phone.replace(/^0/, "").replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer"
                 className="rounded-full bg-leaf px-4 py-2 text-sm font-semibold text-white">WhatsApp customer</a>
               {open.payment_method !== "cod" && open.payment_status !== "paid" && (
@@ -328,6 +453,70 @@ function StatCard({ label, value, tone }: { label: string; value: number; tone: 
     <div className="rounded-xl2 border border-ink/10 bg-white p-4 shadow-sm">
       <p className="text-xs font-medium text-ink/50">{label}</p>
       <p className={`mt-1 text-2xl font-extrabold ${colors[tone]}`}>{value}</p>
+    </div>
+  );
+}
+
+/* ---------------- Courier / tracking panel ---------------- */
+
+function CourierPanel({
+  o, onSave, onSend,
+}: {
+  o: Order; onSave: (courier: string, tracking: string) => void; onSend: () => void;
+}) {
+  const [courier, setCourier] = useState(o.courier ?? "");
+  const [tracking, setTracking] = useState(o.tracking_number ?? "");
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setCourier(o.courier ?? "");
+    setTracking(o.tracking_number ?? "");
+    setSaved(false);
+  }, [o.id, o.courier, o.tracking_number]);
+
+  const dirty = courier !== (o.courier ?? "") || tracking !== (o.tracking_number ?? "");
+  const c = courierOf(courier);
+  const link = c && tracking ? c.url(tracking) : "";
+
+  return (
+    <div className="mt-4 rounded-xl2 border border-ink/12 bg-cream/60 p-3">
+      <p className="text-sm font-semibold">🚚 Courier &amp; tracking</p>
+
+      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+        <select value={courier} onChange={(e) => { setCourier(e.target.value); setSaved(false); }}
+          className="field-input !py-2 text-sm">
+          <option value="">— Courier chunein —</option>
+          {COURIERS.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+        </select>
+        <input value={tracking} onChange={(e) => { setTracking(e.target.value); setSaved(false); }}
+          placeholder="Tracking number" className="field-input !py-2 text-sm" />
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <button type="button" disabled={!dirty || !tracking}
+          onClick={() => { onSave(courier, tracking); setSaved(true); }}
+          className="rounded-full bg-ink px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-40">
+          Save tracking
+        </button>
+
+        <button type="button" disabled={!o.tracking_number || dirty} onClick={onSend}
+          className="rounded-full bg-leaf px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-40">
+          {o.tracking_sent_at ? "Tracking dobara bhejein" : "Customer ko tracking bhejein"}
+        </button>
+
+        {link && (
+          <a href={link} target="_blank" rel="noopener noreferrer"
+            className="text-xs font-medium text-glowdark hover:underline">Khud track karein ↗</a>
+        )}
+      </div>
+
+      {saved && !dirty && <p className="mt-2 text-xs text-leaf">✓ Save ho gaya — order ab &quot;shipped&quot; hai.</p>}
+      {dirty && tracking && <p className="mt-2 text-xs text-amber">Pehle &quot;Save tracking&quot; dabayein.</p>}
+      {o.tracking_sent_at && !dirty && (
+        <p className="mt-1 text-xs text-ink/45">
+          Tracking customer ko bheji ja chuki hai ({new Date(o.tracking_sent_at).toLocaleDateString("en-PK")}).
+        </p>
+      )}
     </div>
   );
 }
