@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Database ko abhi se jaga dein, taake password likhte likhte wo tayyar ho jaye
+  useEffect(() => { fetch("/api/ping").catch(() => {}); }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

@@ -56,12 +56,16 @@ export default function Dashboard() {
     setLoading(true);
     setLoadError(null);
     try {
-      const res = await fetch(`/api/orders?q=${encodeURIComponent(q)}&status=${status}`);
+      // dono ek SATH mangwayein — pehle ek ke baad doosra tha, waqt do guna lagta tha
+      const [res, sres] = await Promise.all([
+        fetch(`/api/orders?q=${encodeURIComponent(q)}&status=${status}`),
+        fetch("/api/stats"),
+      ]);
       if (res.status === 401) { router.push("/admin/login"); return; }
       if (!res.ok) throw new Error(`Server error ${res.status}`);
       const data = await res.json();
       setOrders(data.orders ?? []);
-      try { const sres = await fetch("/api/stats"); if (sres.ok) { const sd = await sres.json(); setStats(sd.stats); } } catch {}
+      try { if (sres.ok) { const sd = await sres.json(); setStats(sd.stats); } } catch {}
     } catch (e: any) {
       setLoadError(e?.message ?? "Orders load nahi ho sake.");
     }
