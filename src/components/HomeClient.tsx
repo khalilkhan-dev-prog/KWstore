@@ -87,7 +87,7 @@ export default function HomeClient({ products, settings }: { products: ProductLi
 
             <div className="flex-1 overflow-y-auto px-3 py-3">
               <button onClick={() => { setCat("All"); setMenuOpen(false); document.getElementById("grid")?.scrollIntoView({ behavior: "smooth" }); }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left font-medium hover:bg-white">
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left font-medium transition hover:bg-glow hover:text-white">
                 <span>🏠</span> All products
               </button>
 
@@ -97,9 +97,9 @@ export default function HomeClient({ products, settings }: { products: ProductLi
                   {categories.filter((c) => c !== "All").map((c) => (
                     <button key={c}
                       onClick={() => { setCat(c); setMenuOpen(false); document.getElementById("grid")?.scrollIntoView({ behavior: "smooth" }); }}
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition hover:bg-white ${cat === c ? "bg-white font-semibold text-glowdark" : "text-ink/75"}`}>
+                      className={`group flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition hover:bg-glow hover:text-white ${cat === c ? "bg-glow font-semibold text-white" : "text-ink/75"}`}>
                       {c}
-                      <span className="text-xs text-ink/30">{products.filter((p) => (p.category || "Other") === c).length}</span>
+                      <span className={`text-xs transition ${cat === c ? "text-white/70" : "text-ink/30 group-hover:text-white/70"}`}>{products.filter((p) => (p.category || "Other") === c).length}</span>
                     </button>
                   ))}
                 </>
@@ -107,11 +107,11 @@ export default function HomeClient({ products, settings }: { products: ProductLi
 
               <p className="mt-3 px-3 text-xs font-semibold uppercase tracking-wide text-ink/40">Help</p>
               <button onClick={() => { setMenuOpen(false); document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" }); }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink/75 hover:bg-white">
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink/75 transition hover:bg-glow hover:text-white">
                 <span>❓</span> Frequently asked
               </button>
               <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer"
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink/75 hover:bg-white">
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink/75 transition hover:bg-glow hover:text-white">
                 <span>💬</span> Chat on WhatsApp
               </a>
             </div>

@@ -32,6 +32,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [open, setOpen] = useState<Order | null>(null);
@@ -53,12 +54,18 @@ export default function Dashboard() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/orders?q=${encodeURIComponent(q)}&status=${status}`);
-    if (res.status === 401) { router.push("/admin/login"); return; }
-    const data = await res.json();
-    setOrders(data.orders ?? []);
-    try { const sres = await fetch("/api/stats"); if (sres.ok) { const sd = await sres.json(); setStats(sd.stats); } } catch {}
-    setLoading(false);
+    setLoadError(null);
+    try {
+      const res = await fetch(`/api/orders?q=${encodeURIComponent(q)}&status=${status}`);
+      if (res.status === 401) { router.push("/admin/login"); return; }
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      const data = await res.json();
+      setOrders(data.orders ?? []);
+      try { const sres = await fetch("/api/stats"); if (sres.ok) { const sd = await sres.json(); setStats(sd.stats); } } catch {}
+    } catch (e: any) {
+      setLoadError(e?.message ?? "Orders load nahi ho sake.");
+    }
+    setLoading(false); // kamyab ho ya nakaam — "Loading…" par atka na rahe
   }, [q, status, router]);
 
   useEffect(() => { load(); }, [load]);
@@ -316,6 +323,35 @@ ${list.map(slipHtml).join("")}
 
         <h2 className="mt-6 font-display text-xl font-semibold">All orders</h2>
 
+        {loadError && (
+          <div className="mt-4 rounded-xl2 border border-glow/40 bg-glow/8 p-4">
+            <p className="font-semibold text-glowdark">Orders load nahi ho sake</p>
+            <p className="mt-1 text-sm text-ink/60">{loadError}</p>
+            <p className="mt-2 text-xs text-ink/50">
+              Aksar wajah: database mein naye khaane nahi bane. KWstore folder mein cmd khol kar ek baar chalayein:{" "}
+              <code className="rounded bg-white px-1">node scripts/add-tracking.mjs</code>
+            </p>
+            <button onClick={load} className="mt-3 rounded-full border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink/70 transition hover:border-glow hover:bg-glow hover:text-white">
+              Dobara koshish karein
+            </button>
+          </div>
+        )}
+
+        {needConfirm.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl2 border border-glow/30 bg-glow/8 p-4">
+            <div>
+              <p className="font-semibold text-glowdark">
+                📞 {needConfirm.length} order{needConfirm.length > 1 ? "s" : ""} ki confirmation baaki hai
+              </p>
+              <p className="mt-0.5 text-xs text-ink/55">Bhejne se pehle confirm karwana COD wapsi bohat kam kar deta hai.</p>
+            </div>
+            <button onClick={() => setStatus("new")}
+              className="rounded-full border border-glow bg-white px-4 py-2 text-sm font-semibold text-glowdark transition hover:bg-glow hover:text-white">
+              Dekhein
+            </button>
+          </div>
+        )}
+
         <div className="mt-4 flex flex-wrap gap-2">
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name / phone / city / #"
             className="field-input max-w-xs" />
@@ -326,13 +362,13 @@ ${list.map(slipHtml).join("")}
 
           <button
             onClick={() => printOrders(orders.filter((o) => o.status === "new"))}
-            className="rounded-full bg-glow px-4 py-2 text-sm font-semibold text-white transition hover:bg-glowdark"
+            className="rounded-full border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink/70 transition hover:border-glow hover:bg-glow hover:text-white"
             title="Sab naye orders ki slips ek sath">
             🖨️ Print new ({orders.filter((o) => o.status === "new").length})
           </button>
           <button
             onClick={() => printOrders(orders)}
-            className="rounded-full border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink/70 transition hover:border-glow hover:text-glowdark"
+            className="rounded-full border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink/70 transition hover:border-glow hover:bg-glow hover:text-white"
             title="Jo orders is waqt list mein dikh rahe hain, sab ki slips">
             Print all shown
           </button>

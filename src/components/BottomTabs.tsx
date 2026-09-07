@@ -32,7 +32,7 @@ export default function BottomTabs({
             icon={<><circle cx="11" cy="11" r="7" /><path d="m20 20-3.6-3.6" /></>} />
 
           <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer"
-            className="flex flex-1 flex-col items-center gap-0.5 py-2 text-ink/50 transition active:scale-95">
+            className="flex flex-1 flex-col items-center gap-0.5 py-2 text-ink/50 transition hover:text-glow active:scale-95 active:text-glow">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-[22px] w-[22px] text-leaf">
               <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 1.8c2.16 0 4.19.84 5.72 2.37a8.06 8.06 0 0 1 2.37 5.72c0 4.48-3.65 8.12-8.13 8.12h-.01a8.1 8.1 0 0 1-4.13-1.13l-.3-.18-3.12.82.83-3.04-.19-.31a8.06 8.06 0 0 1-1.25-4.32c0-4.48 3.65-8.12 8.13-8.12Z" />
             </svg>
@@ -51,7 +51,7 @@ function TabButton({
 }) {
   return (
     <button type="button" onClick={onClick}
-      className={`flex flex-1 flex-col items-center gap-0.5 py-2 transition active:scale-95 ${
+      className={`flex flex-1 flex-col items-center gap-0.5 py-2 transition active:scale-95 hover:text-glow active:text-glow ${
         active ? "text-glow" : "text-ink/50"
       }`}>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
