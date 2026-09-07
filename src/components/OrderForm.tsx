@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { trackInitiateCheckout, trackPurchase } from "@/lib/track";
 
 type Method = "cod" | "jazzcash" | "easypaisa" | "bank";
 type Pay = { jazzcash: string; easypaisa: string; bank_number: string; bank_title: string };
@@ -57,6 +58,9 @@ export default function OrderForm({
       payment_reference: String(fd.get("ref") ?? ""),
       website: String(fd.get("website") ?? ""),
     };
+    // Customer ne order bhejna shuru kiya
+    trackInitiateCheckout({ id: productId, name: productName, price, quantity });
+
     try {
       const res = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = await res.json();
@@ -78,6 +82,11 @@ export default function OrderForm({
         // open WhatsApp in a new tab so the customer can send the confirmation
         window.open(`https://wa.me/${num}?text=${msg}`, "_blank");
       }
+      // Facebook / TikTok / Google ko batayein ke order lag gaya
+      trackPurchase(String(data.order_number ?? ""), {
+        id: productId, name: productName, price, quantity,
+      });
+
       router.push(`/order/success?n=${data.order_number ?? ""}`);
     } catch { setFormError("Network error. Please try again."); setSubmitting(false); }
   }

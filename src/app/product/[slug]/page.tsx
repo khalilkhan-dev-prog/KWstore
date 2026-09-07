@@ -3,6 +3,7 @@ import Link from "next/link";
 import OrderForm from "@/components/OrderForm";
 import ProductGallery from "@/components/ProductGallery";
 import { OverlayBadges, InfoBadges } from "@/components/Badges";
+import TrackView from "@/components/TrackView";
 import { getProductBySlug, getRelatedProducts, getSettings, imgUrl } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
   return (
     <main>
+      <TrackView id={product.id} name={product.name} price={product.price} />
+
       <header className="sticky top-0 z-30 border-b border-ink/10 bg-cream/80 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <Link href="/" className="font-display text-2xl font-semibold text-glow">{storeName}</Link>

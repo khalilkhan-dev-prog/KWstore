@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Catalog, { type CatalogProduct, type Banner, type FlashSale } from "@/components/Catalog";
 import BottomTabs from "@/components/BottomTabs";
 import type { ProductListItem } from "@/lib/data";
+import { trackSearch } from "@/lib/track";
 
 const FAQS = [
   { q: "How do I pay?", a: "Cash on delivery, or JazzCash / Easypaisa / Bank. No advance needed for COD." },
@@ -19,6 +20,14 @@ export default function HomeClient({ products, settings }: { products: ProductLi
   const [cat, setCat] = useState("All");
   const [categories, setCategories] = useState<string[]>(["All"]);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  // search event — customer rukne ke 1 second baad bheja jata hai
+  // (har harf par nahi, warna sainkron events chale jayenge)
+  useEffect(() => {
+    if (!search.trim()) return;
+    const t = setTimeout(() => trackSearch(search), 1000);
+    return () => clearTimeout(t);
+  }, [search]);
   const storeName = settings.store_name || "kk new fashion";
   const currency = settings.currency || "PKR";
   const whatsapp = (settings.support_whatsapp || "").replace(/[^0-9]/g, "");

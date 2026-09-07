@@ -44,6 +44,7 @@ const EMPTY = {
   store_name: "", support_whatsapp: "", shipping_fee: "200", currency: "PKR", notify_email: "",
   pay_jazzcash: "", pay_easypaisa: "", pay_bank_number: "", pay_bank_title: "",
   hero_title: "", hero_subtitle: "",
+  fb_pixel_id: "", tiktok_pixel_id: "", ga_id: "",
   flash_on: "0", flash_title: "Flash Sale", flash_subtitle: "Limited stock · limited time",
   flash_ends: "", flash_repeat_hours: "0",
 };
@@ -154,6 +155,53 @@ export default function AdminSettings() {
                     <input className="field-input" value={form.pay_bank_number} onChange={(e) => set("pay_bank_number", e.target.value)} placeholder="PK00 MEZN 0000 ..." /></div>
                   <div><label className="field-label">Bank name & account title</label>
                     <input className="field-input" value={form.pay_bank_title} onChange={(e) => set("pay_bank_title", e.target.value)} placeholder="Meezan Bank — Khalil Khan" /></div>
+                </div>
+              </div>
+
+              {/* ---------------- PIXELS / ANALYTICS ---------------- */}
+              <div className="mt-2 border-t border-ink/10 pt-4">
+                <h2 className="font-display text-lg font-semibold">Ads &amp; analytics (Pixels)</h2>
+                <p className="mt-1 text-xs text-ink/45">
+                  In ke bagair aap ko pata nahi chalta ke kaun sa ad kaam kar raha hai.
+                  Jo khaana khali chhorenge, us ka code website par lagega hi nahi.
+                </p>
+
+                <div className="mt-3"><label className="field-label">Facebook / Instagram Pixel ID</label>
+                  <input className="field-input" value={form.fb_pixel_id} inputMode="numeric"
+                    onChange={(e) => set("fb_pixel_id", e.target.value.replace(/[^0-9]/g, ""))}
+                    placeholder="1234567890123456" />
+                  <p className="mt-1 text-xs text-ink/45">
+                    Facebook Events Manager → Data sources → aap ka pixel → sirf number wala ID.
+                  </p>
+                </div>
+
+                <div className="mt-3"><label className="field-label">TikTok Pixel ID</label>
+                  <input className="field-input" value={form.tiktok_pixel_id}
+                    onChange={(e) => set("tiktok_pixel_id", e.target.value.replace(/[^A-Za-z0-9]/g, ""))}
+                    placeholder="CXXXXXXXXXXXXXXXXX" />
+                  <p className="mt-1 text-xs text-ink/45">
+                    TikTok Ads Manager → Tools → Events → Web Events → Pixel ID.
+                  </p>
+                </div>
+
+                <div className="mt-3"><label className="field-label">Google Analytics ID</label>
+                  <input className="field-input" value={form.ga_id}
+                    onChange={(e) => set("ga_id", e.target.value.trim())}
+                    placeholder="G-XXXXXXXXXX" />
+                  <p className="mt-1 text-xs text-ink/45">
+                    analytics.google.com → Admin → Data streams → &quot;G-&quot; se shuru hone wala ID.
+                  </p>
+                </div>
+
+                <div className="mt-3 rounded-xl border border-ink/12 bg-white/60 p-3 text-xs text-ink/60">
+                  <p className="font-semibold text-ink/75">Khud-b-khud ye cheezein bheji jati hain:</p>
+                  <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                    <li><b>PageView</b> — koi bhi safha khula</li>
+                    <li><b>ViewContent</b> — kisi product ka safha khula (kaun sa product, kitne ka)</li>
+                    <li><b>InitiateCheckout</b> — order form bhara gaya</li>
+                    <li><b>Purchase</b> — order lag gaya (raqam ke sath) — <b>yehi sab se ahem hai</b></li>
+                    <li><b>Search</b> — customer ne kuch dhoonda</li>
+                  </ul>
                 </div>
               </div>
 
