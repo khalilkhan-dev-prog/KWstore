@@ -54,6 +54,7 @@ export default function AdminSettings() {
   const [form, setForm] = useState({ ...EMPTY });
   const [banners, setBanners] = useState<Banner[]>([]);
   const [prodList, setProdList] = useState<{ slug: string; name: string }[]>([]);
+  const [section, setSection] = useState<string | null>(null);
   const [banSaving, setBanSaving] = useState(false);
   const [banMsg, setBanMsg] = useState<string | null>(null);
   const [banErr, setBanErr] = useState<string | null>(null);
@@ -120,14 +121,101 @@ export default function AdminSettings() {
   // sab banners ka total size (MB) — taake pata rahe kitna bhaari hai
   const banSizeMb = banners.reduce((n, b) => n + (b.image_url?.length ?? 0), 0) / 1_400_000;
 
+  /* ---------------- sections ---------------- */
+
+  const SECTIONS = [
+    { id: "store",   icon: "🏪", title: "Store details",   desc: "Naam, WhatsApp number, delivery fee, notification email" },
+    { id: "payment", icon: "💳", title: "Payment details", desc: "JazzCash, Easypaisa aur bank ki tafseel" },
+    { id: "banners", icon: "🖼️", title: "Homepage banners", desc: "Bara slider — photos, writing aur product link" },
+    { id: "flash",   icon: "⚡", title: "Flash Sale timer", desc: "Ulta ginti wali orange patti" },
+    { id: "pixels",  icon: "📊", title: "Ads & analytics",  desc: "Facebook, TikTok aur Google ke pixels" },
+  ] as const;
+
+  type SectionId = (typeof SECTIONS)[number]["id"];
+  const current = SECTIONS.find((s) => s.id === section);
+
+  // har hisse ke saamne uski mojooda halat — ek nazar mein pata chal jaye
+  function hint(id: SectionId): { text: string; ok: boolean } {
+    switch (id) {
+      case "store":
+        return form.store_name
+          ? { text: form.store_name, ok: true }
+          : { text: "Naam nahi likha", ok: false };
+      case "payment": {
+        const n = [form.pay_jazzcash, form.pay_easypaisa, form.pay_bank_number].filter(Boolean).length;
+        return n ? { text: `${n} tareeqe lage hue hain`, ok: true } : { text: "Sirf COD", ok: false };
+      }
+      case "banners":
+        return banners.length
+          ? { text: `${banners.length} banner · ${banSizeMb.toFixed(1)} MB`, ok: true }
+          : { text: "Koi banner nahi", ok: false };
+      case "flash":
+        return form.flash_on === "1"
+          ? { text: "Chal raha hai", ok: true }
+          : { text: "Band hai", ok: false };
+      case "pixels": {
+        const n = [form.fb_pixel_id, form.tiktok_pixel_id, form.ga_id].filter(Boolean).length;
+        return n ? { text: `${n} lage hue hain`, ok: true } : { text: "Koi pixel nahi", ok: false };
+      }
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-cream md:flex-row">
       <AdminNav />
       <main className="flex-1 p-4 md:p-6">
-        <h1 className="font-display text-2xl font-semibold">Settings</h1>
-        {loading ? <p className="mt-6 text-ink/40">Loading…</p> : (
+
+        {/* ---- sarnama ---- */}
+        {section ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <button onClick={() => { setSection(null); setSaved(false); setError(null); }}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/15 bg-white text-ink/60 transition hover:border-glow hover:bg-glow hover:text-white"
+              aria-label="Wapas">←</button>
+            <h1 className="font-display text-2xl font-semibold">
+              <span className="mr-2">{current?.icon}</span>{current?.title}
+            </h1>
+          </div>
+        ) : (
+          <>
+            <h1 className="font-display text-2xl font-semibold">Settings</h1>
+            <p className="mt-1 text-sm text-ink/50">Jise badalna ho us par click karein.</p>
+          </>
+        )}
+
+        {loading ? <p className="mt-6 text-ink/40">Loading…</p> : section === null ? (
+
+          /* ---------------- FEHRIST (menu) ---------------- */
+          <div className="mt-5 grid max-w-3xl gap-3 sm:grid-cols-2">
+            {SECTIONS.map((s) => {
+              const h = hint(s.id);
+              return (
+                <button key={s.id} onClick={() => { setSection(s.id); setSaved(false); setError(null); }}
+                  className="group flex items-start gap-3 rounded-xl2 border border-ink/10 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-glow hover:shadow-card">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-cream text-xl transition group-hover:bg-glow/15">
+                    {s.icon}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold transition group-hover:text-glowdark">{s.title}</span>
+                    <span className="mt-0.5 block text-xs leading-snug text-ink/50">{s.desc}</span>
+                    <span className={`mt-1.5 inline-block truncate rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                      h.ok ? "bg-leaf/12 text-leaf" : "bg-ink/8 text-ink/45"
+                    }`}>
+                      {h.text}
+                    </span>
+                  </span>
+                  <span className="mt-1 text-ink/25 transition group-hover:translate-x-0.5 group-hover:text-glow">›</span>
+                </button>
+              );
+            })}
+          </div>
+
+        ) : (
+
+          /* ---------------- ek hissa ---------------- */
           <div className="mt-4 max-w-2xl rounded-xl2 border border-ink/10 bg-white p-6">
             <div className="grid gap-4">
+              {section === "store" && (
+                <>
               <div>
                 <label className="field-label">Store name</label>
                 <input className="field-input" value={form.store_name} onChange={(e) => set("store_name", e.target.value)} placeholder="kk new fashion" />
@@ -140,8 +228,11 @@ export default function AdminSettings() {
               </div>
               <div><label className="field-label">Notification email</label>
                 <input className="field-input" value={form.notify_email} onChange={(e) => set("notify_email", e.target.value)} placeholder="you@gmail.com" /></div>
+                </>
+              )}
 
-              <div className="mt-2 border-t border-ink/10 pt-4">
+              {section === "payment" && (
+              <div>
                 <h2 className="font-display text-lg font-semibold">Payment details</h2>
                 <p className="mt-1 text-xs text-ink/45">Customers see these when they choose JazzCash / Easypaisa / Bank. Leave empty to hide that option. Change anytime.</p>
                 <div className="mt-3 grid gap-4 sm:grid-cols-2">
@@ -158,8 +249,10 @@ export default function AdminSettings() {
                 </div>
               </div>
 
-              {/* ---------------- PIXELS / ANALYTICS ---------------- */}
-              <div className="mt-2 border-t border-ink/10 pt-4">
+              )}
+
+              {section === "pixels" && (
+              <div>
                 <h2 className="font-display text-lg font-semibold">Ads &amp; analytics (Pixels)</h2>
                 <p className="mt-1 text-xs text-ink/45">
                   In ke bagair aap ko pata nahi chalta ke kaun sa ad kaam kar raha hai.
@@ -204,9 +297,10 @@ export default function AdminSettings() {
                   </ul>
                 </div>
               </div>
+              )}
 
-              {/* ---------------- FLASH SALE ---------------- */}
-              <div className="mt-2 border-t border-ink/10 pt-4">
+              {section === "flash" && (
+              <div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <h2 className="font-display text-lg font-semibold">Flash Sale timer</h2>
@@ -279,9 +373,10 @@ export default function AdminSettings() {
                   </div>
                 )}
               </div>
+              )}
 
-              {/* ---------------- BANNERS ---------------- */}
-              <div className="mt-2 border-t border-ink/10 pt-4">
+              {section === "banners" && (
+              <div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <h2 className="font-display text-lg font-semibold">Homepage banners</h2>
@@ -343,11 +438,18 @@ export default function AdminSettings() {
                   </div>
                 )}
               </div>
+              )}
             </div>
 
             {error && <div className="mt-4 rounded-xl bg-glow/10 px-4 py-3 text-sm font-medium text-glowdark">{error}</div>}
-            {saved && <div className="mt-4 rounded-xl bg-leaf/10 px-4 py-3 text-sm font-medium text-leaf">✓ Saved! Refresh your store to see changes.</div>}
-            <button className="btn-primary mt-5" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save settings"}</button>
+            {saved && <div className="mt-4 rounded-xl bg-leaf/10 px-4 py-3 text-sm font-medium text-leaf">✓ Save ho gaya! Store refresh kar ke dekh lein.</div>}
+
+            {/* banners ka apna Save button upar hai, is liye yahan nahi */}
+            {section !== "banners" && (
+              <button className="btn-primary mt-5" onClick={save} disabled={saving}>
+                {saving ? "Saving…" : "Save"}
+              </button>
+            )}
           </div>
         )}
       </main>
