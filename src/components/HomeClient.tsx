@@ -6,6 +6,7 @@ import Catalog, { type CatalogProduct, type Banner, type FlashSale } from "@/com
 import BottomTabs from "@/components/BottomTabs";
 import type { ProductListItem } from "@/lib/data";
 import { trackSearch } from "@/lib/track";
+import Link from "next/link";
 
 const FAQS = [
   { q: "How do I pay?", a: "Cash on delivery, or JazzCash / Easypaisa / Bank. No advance needed for COD." },
@@ -123,6 +124,17 @@ export default function HomeClient({ products, settings }: { products: ProductLi
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink/75 transition hover:bg-glow hover:text-white">
                 <span>💬</span> Chat on WhatsApp
               </a>
+
+              <p className="mt-3 px-3 text-xs font-semibold uppercase tracking-wide text-ink/40">Store</p>
+              <Link href="/about" className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink/75 transition hover:bg-glow hover:text-white">
+                <span>ℹ️</span> About us
+              </Link>
+              <Link href="/contact" className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink/75 transition hover:bg-glow hover:text-white">
+                <span>📞</span> Contact
+              </Link>
+              <Link href="/policies" className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink/75 transition hover:bg-glow hover:text-white">
+                <span>📄</span> Delivery &amp; returns
+              </Link>
             </div>
 
             <div className="border-t border-ink/10 px-5 py-4 text-xs text-ink/45">
@@ -160,7 +172,11 @@ export default function HomeClient({ products, settings }: { products: ProductLi
           </div>
           <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-cream/15 pt-6 text-sm text-cream/50 sm:flex-row">
             <span>© {new Date().getFullYear()} {storeName}. All rights reserved.</span>
-            <span>Cash on delivery · All over Pakistan</span>
+            <span className="flex flex-wrap gap-4">
+              <Link href="/about" className="hover:text-cream">About</Link>
+              <Link href="/contact" className="hover:text-cream">Contact</Link>
+              <Link href="/policies" className="hover:text-cream">Delivery &amp; returns</Link>
+            </span>
           </div>
         </div>
       </footer>

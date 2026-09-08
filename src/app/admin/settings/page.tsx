@@ -44,6 +44,9 @@ const EMPTY = {
   store_name: "", support_whatsapp: "", shipping_fee: "200", currency: "PKR", notify_email: "",
   pay_jazzcash: "", pay_easypaisa: "", pay_bank_number: "", pay_bank_title: "",
   hero_title: "", hero_subtitle: "",
+  about_text: "", business_address: "", contact_email: "", contact_phone: "",
+  instagram_url: "", facebook_url: "", tiktok_url: "",
+  delivery_time: "", return_days: "7", working_hours: "",
   fb_pixel_id: "", tiktok_pixel_id: "", ga_id: "",
   flash_on: "0", flash_title: "Flash Sale", flash_subtitle: "Limited stock · limited time",
   flash_ends: "", flash_repeat_hours: "0",
@@ -126,6 +129,7 @@ export default function AdminSettings() {
   const SECTIONS = [
     { id: "store",   icon: "🏪", title: "Store details",   desc: "Naam, WhatsApp number, delivery fee, notification email" },
     { id: "payment", icon: "💳", title: "Payment details", desc: "JazzCash, Easypaisa aur bank ki tafseel" },
+    { id: "pages",   icon: "📄", title: "About & Contact",  desc: "Aap ki dukan ki kahani, pata, social links, wapsi ki muddat" },
     { id: "banners", icon: "🖼️", title: "Homepage banners", desc: "Bara slider — photos, writing aur product link" },
     { id: "flash",   icon: "⚡", title: "Flash Sale timer", desc: "Ulta ginti wali orange patti" },
     { id: "pixels",  icon: "📊", title: "Ads & analytics",  desc: "Facebook, TikTok aur Google ke pixels" },
@@ -153,6 +157,13 @@ export default function AdminSettings() {
         return form.flash_on === "1"
           ? { text: "Chal raha hai", ok: true }
           : { text: "Band hai", ok: false };
+      case "pages": {
+        const n = [form.about_text, form.contact_email, form.business_address,
+                   form.instagram_url, form.facebook_url].filter(Boolean).length;
+        return n >= 3 ? { text: "Bhara hua hai", ok: true }
+             : n > 0  ? { text: `${n}/5 khaane bhare` , ok: false }
+                      : { text: "Khali — bharna zaroori hai", ok: false };
+      }
       case "pixels": {
         const n = [form.fb_pixel_id, form.tiktok_pixel_id, form.ga_id].filter(Boolean).length;
         return n ? { text: `${n} lage hue hain`, ok: true } : { text: "Koi pixel nahi", ok: false };
@@ -249,6 +260,70 @@ export default function AdminSettings() {
                 </div>
               </div>
 
+              )}
+
+              {section === "pages" && (
+                <div>
+                  <p className="text-xs text-ink/50">
+                    Ye maloomat aap ke About, Contact aur Policies safhon par nazar aati hai.
+                    Jitna zyada bharenge, customer ko utna zyada bharosa hoga.
+                  </p>
+
+                  <div className="mt-3"><label className="field-label">Apni dukan ke baare mein</label>
+                    <textarea className="field-input min-h-[110px]" value={form.about_text}
+                      onChange={(e) => set("about_text", e.target.value)}
+                      placeholder="Hum 2024 se Pakistan bhar mein trending gadgets aur fashion pohancha rahe hain…" />
+                    <p className="mt-1 text-xs text-ink/45">Khali chhorenge to ek aam sa matn khud lag jayega.</p>
+                  </div>
+
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div><label className="field-label">Contact email</label>
+                      <input className="field-input" value={form.contact_email}
+                        onChange={(e) => set("contact_email", e.target.value)} placeholder="shop@example.com" /></div>
+                    <div><label className="field-label">Contact phone</label>
+                      <input className="field-input" value={form.contact_phone}
+                        onChange={(e) => set("contact_phone", e.target.value)} placeholder="0335 5095595" /></div>
+                  </div>
+
+                  <div className="mt-3"><label className="field-label">Pata (address)</label>
+                    <textarea className="field-input min-h-[70px]" value={form.business_address}
+                      onChange={(e) => set("business_address", e.target.value)}
+                      placeholder="Main Bazaar, Hangu, KPK, Pakistan" />
+                    <p className="mt-1 text-xs text-ink/45">
+                      Shehar ka naam bhi kaafi hai. Pata dikhane se COD par bharosa barhta hai.
+                    </p>
+                  </div>
+
+                  <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                    <div><label className="field-label">Instagram link</label>
+                      <input className="field-input" value={form.instagram_url}
+                        onChange={(e) => set("instagram_url", e.target.value)} placeholder="https://instagram.com/…" /></div>
+                    <div><label className="field-label">Facebook link</label>
+                      <input className="field-input" value={form.facebook_url}
+                        onChange={(e) => set("facebook_url", e.target.value)} placeholder="https://facebook.com/…" /></div>
+                    <div><label className="field-label">TikTok link</label>
+                      <input className="field-input" value={form.tiktok_url}
+                        onChange={(e) => set("tiktok_url", e.target.value)} placeholder="https://tiktok.com/@…" /></div>
+                  </div>
+
+                  <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                    <div><label className="field-label">Delivery mein kitna waqt</label>
+                      <input className="field-input" value={form.delivery_time}
+                        onChange={(e) => set("delivery_time", e.target.value)} placeholder="2–5 kaam ke din" /></div>
+                    <div><label className="field-label">Wapsi kitne din mein</label>
+                      <input className="field-input" value={form.return_days} inputMode="numeric"
+                        onChange={(e) => set("return_days", e.target.value.replace(/[^0-9]/g, ""))} placeholder="7" /></div>
+                    <div><label className="field-label">Kaam ke auqat</label>
+                      <input className="field-input" value={form.working_hours}
+                        onChange={(e) => set("working_hours", e.target.value)} placeholder="10am – 10pm" /></div>
+                  </div>
+
+                  <div className="mt-3 rounded-xl border border-ink/12 bg-white/60 p-3 text-xs text-ink/60">
+                    <p className="font-semibold text-ink/75">Safhe dekhne ke liye:</p>
+                    <p className="mt-1">/about &nbsp;·&nbsp; /contact &nbsp;·&nbsp; /policies</p>
+                    <p className="mt-1">Inke link footer aur ☰ menu mein khud lag jate hain.</p>
+                  </div>
+                </div>
               )}
 
               {section === "pixels" && (
