@@ -38,7 +38,7 @@ export default function AddToCart({
 
         <button type="button" onClick={add}
           className="flex-1 rounded-full border border-glow bg-white px-5 py-2.5 text-sm font-semibold text-glowdark transition hover:bg-glow hover:text-white">
-          🛒 Cart mein daalein
+          🛒 Add to cart
         </button>
       </div>
 
@@ -52,7 +52,7 @@ export default function AddToCart({
       )}
 
       <p className="mt-2 text-xs text-ink/45">
-        Kai cheezein ek sath mangwani hon to cart istemal karein — ek hi delivery mein aa jayengi.
+        Buying more than one item? Add them to your cart — they all arrive in one delivery.
       </p>
     </div>
   );

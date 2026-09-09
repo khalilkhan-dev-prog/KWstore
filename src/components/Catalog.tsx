@@ -271,15 +271,15 @@ export default function Catalog({ products, currency, search, banners, flash, ca
 
         {/* Products */}
         <h2 id="grid" className="mt-6 scroll-mt-24 font-display text-xl font-semibold md:text-2xl">Our products</h2>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5">
           {filtered.map((p) => {
             const discount = p.compare_at && p.compare_at > p.price
               ? Math.round(((p.compare_at - p.price) / p.compare_at) * 100) : 0;
             return (
               <Link key={p.id} href={`/product/${p.slug}`}
-                className="group flex flex-col overflow-hidden rounded-xl2 border border-ink/10 bg-cream transition duration-200 hover:-translate-y-0.5 hover:border-glow/40 hover:shadow-card">
+                className="group flex flex-col overflow-hidden rounded-xl border border-ink/8 bg-white transition duration-200 hover:-translate-y-0.5 hover:border-glow/40 hover:shadow-card">
                 <div className="relative aspect-square overflow-hidden bg-clay">
-                  {discount > 0 && <span className="absolute left-2 top-2 z-10 rounded-full bg-glow px-2 py-0.5 text-xs font-semibold text-white shadow-soft">{discount}% OFF</span>}
+                  {discount > 0 && <span className="absolute left-0 top-2 z-10 rounded-r-full bg-glow px-2 py-0.5 text-[11px] font-bold text-white shadow-soft">-{discount}%</span>}
                   <OverlayBadges p={p} />
                   {p.has_image ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -289,18 +289,25 @@ export default function Catalog({ products, currency, search, banners, flash, ca
                     <div className="flex h-full w-full items-center justify-center p-3 text-center font-display text-sm font-semibold text-ink/60">{p.name}</div>
                   )}
                 </div>
-                <div className="flex flex-1 flex-col p-2.5">
-                  <h3 className="min-h-[2.4em] text-[13px] font-medium leading-snug line-clamp-2 transition group-hover:text-glowdark">{p.name}</h3>
+                <div className="flex flex-1 flex-col p-2">
+                  <h3 className="min-h-[2.5em] text-[12.5px] leading-[1.25] line-clamp-2 text-ink/85 transition group-hover:text-glowdark">{p.name}</h3>
+
+                  {/* qeemat + discount — Daraz ki tarah ek hi line mein */}
                   <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
                     <span className="text-[15px] font-bold text-glowdark">{fmt(p.price)}</span>
-                    {p.compare_at && p.compare_at > p.price && <span className="text-[11px] text-ink/40 line-through">{fmt(p.compare_at)}</span>}
+                    {discount > 0 && <span className="text-[11px] font-semibold text-glow">-{discount}%</span>}
                   </div>
+                  {p.compare_at && p.compare_at > p.price && (
+                    <span className="text-[10.5px] text-ink/35 line-through">{fmt(p.compare_at)}</span>
+                  )}
+
                   {/* rating + sold */}
-                  <div className="mt-0.5 flex items-center gap-1 text-[11px] text-ink/50">
+                  <div className="mt-0.5 flex items-center gap-1 text-[10.5px] text-ink/45">
                     <span className="text-amber">★</span>
-                    <span className="font-medium text-ink/70">{(p.rating ?? 4.8).toFixed(1)}</span>
+                    <span className="font-medium text-ink/60">{(p.rating ?? 4.8).toFixed(1)}</span>
                     {p.sold_count ? <span>· {p.sold_count} sold</span> : null}
                   </div>
+
                   <InfoBadges p={p} />
                 </div>
               </Link>

@@ -46,7 +46,7 @@ export function InfoBadges({ p, size = "sm" }: { p: BadgeSource; size?: "sm" | "
   const low = !!p.badge_low_stock && stock !== null && stock > 0;
   if (!free && !low) return null;
 
-  const pad = size === "lg" ? "px-3 py-1 text-xs" : "px-2 py-0.5 text-[10px]";
+  const pad = size === "lg" ? "px-3 py-1 text-xs" : "px-1.5 py-0.5 text-[9.5px]";
 
   return (
     <div className="mt-1.5 flex flex-wrap items-center gap-1">
