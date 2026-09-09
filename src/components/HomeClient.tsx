@@ -199,10 +199,6 @@ export default function HomeClient({ products, settings }: { products: ProductLi
         whatsapp={whatsapp}
         onHome={() => { setCat("All"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
         onCategories={() => setMenuOpen(true)}
-        onSearch={() => {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          setTimeout(() => searchRef.current?.focus(), 350);
-        }}
       />
     </main>
   );

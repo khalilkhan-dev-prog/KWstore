@@ -9,12 +9,11 @@ import CartCount from "@/components/CartCount";
 export type Tab = "home" | "categories" | "search" | "cart" | "help";
 
 export default function BottomTabs({
-  active, onHome, onCategories, onSearch, whatsapp,
+  active, onHome, onCategories, whatsapp,
 }: {
   active: Tab;
   onHome: () => void;
   onCategories: () => void;
-  onSearch: () => void;
   whatsapp: string;
 }) {
   return (
@@ -30,9 +29,6 @@ export default function BottomTabs({
 
           <TabButton label="Categories" active={active === "categories"} onClick={onCategories}
             icon={<><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></>} />
-
-          <TabButton label="Search" active={active === "search"} onClick={onSearch}
-            icon={<><circle cx="11" cy="11" r="7" /><path d="m20 20-3.6-3.6" /></>} />
 
           <Link href="/cart"
             className={`relative flex flex-1 flex-col items-center gap-0.5 py-2 transition hover:text-glow active:scale-95 active:text-glow ${

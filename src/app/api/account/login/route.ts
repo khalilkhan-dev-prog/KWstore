@@ -19,9 +19,17 @@ export async function POST(req: NextRequest) {
   const phone = normalizePhone(String(b.phone ?? ""));
   const password = String(b.password ?? "");
 
-  const r = await query<{ id: string; full_name: string; password_hash: string }>(
-    "SELECT id, full_name, password_hash FROM customers WHERE phone=$1 LIMIT 1", [phone]
-  );
+  let r;
+  try {
+    r = await query<{ id: string; full_name: string; password_hash: string }>(
+      "SELECT id, full_name, password_hash FROM customers WHERE phone=$1 LIMIT 1", [phone]
+    );
+  } catch (e: any) {
+    if (/relation .*customers.* does not exist/i.test(String(e?.message))) {
+      return json({ error: "Accounts are not set up yet. Please run: node scripts/add-accounts.mjs" }, 503);
+    }
+    return json({ error: "Could not reach the database. Please try again." }, 503);
+  }
 
   // Jaan boojh kar ek hi paighaam — taake koi ye na jaan sake ke
   // kaun sa number account rakhta hai aur kaun sa nahi.
