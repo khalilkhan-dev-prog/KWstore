@@ -103,7 +103,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
               {others.map((p) => {
                 const d = p.compare_at && p.compare_at > p.price ? Math.round(((p.compare_at - p.price) / p.compare_at) * 100) : 0;
                 return (
-                  <Link key={p.id} href={`/product/${p.slug}`} className="group flex flex-col overflow-hidden rounded-xl border border-ink/8 bg-white transition duration-200 hover:-translate-y-0.5 hover:border-glow/40 hover:shadow-card">
+                  <Link key={p.id} href={`/product/${p.slug}`} className="group flex flex-col overflow-hidden rounded-xl border border-ink/10 bg-cream transition duration-200 hover:-translate-y-0.5 hover:border-glow/40 hover:shadow-card">
                     <div className="relative aspect-square overflow-hidden bg-clay">
                       {d > 0 && <span className="absolute left-0 top-2 z-10 rounded-r-full bg-glow px-2 py-0.5 text-[11px] font-bold text-white shadow-soft">-{d}%</span>}
                       <OverlayBadges p={p} />
@@ -114,7 +114,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
                       ) : (<div className="flex h-full w-full items-center justify-center p-2 text-center font-display text-xs font-semibold text-ink/60">{p.name}</div>)}
                     </div>
                     <div className="flex flex-1 flex-col p-2.5">
-                      <h3 className="min-h-[2.4em] text-[13px] font-medium leading-snug line-clamp-2 transition group-hover:text-glowdark">{p.name}</h3>
+                      <h3 className="min-h-[2.4em] text-[12.5px] leading-[1.25] line-clamp-2 text-ink/85 transition group-hover:text-glowdark">{p.name}</h3>
                       <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
                         <span className="text-[15px] font-bold text-glowdark">{fmt(p.price)}</span>
                         {p.compare_at && p.compare_at > p.price && <span className="text-[11px] text-ink/40 line-through">{fmt(p.compare_at)}</span>}

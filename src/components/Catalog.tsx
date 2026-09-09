@@ -271,13 +271,13 @@ export default function Catalog({ products, currency, search, banners, flash, ca
 
         {/* Products */}
         <h2 id="grid" className="mt-6 scroll-mt-24 font-display text-xl font-semibold md:text-2xl">Our products</h2>
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5">
+        <div className="mt-3 columns-2 gap-x-2 sm:columns-3 sm:gap-x-3 md:columns-4 lg:columns-5">
           {filtered.map((p) => {
             const discount = p.compare_at && p.compare_at > p.price
               ? Math.round(((p.compare_at - p.price) / p.compare_at) * 100) : 0;
             return (
               <Link key={p.id} href={`/product/${p.slug}`}
-                className="group flex flex-col overflow-hidden rounded-xl border border-ink/8 bg-white transition duration-200 hover:-translate-y-0.5 hover:border-glow/40 hover:shadow-card">
+                className="group mb-2 block break-inside-avoid overflow-hidden rounded-xl border border-ink/10 bg-cream transition duration-200 hover:-translate-y-0.5 hover:border-glow/40 hover:shadow-card sm:mb-3">
                 <div className="relative aspect-square overflow-hidden bg-clay">
                   {discount > 0 && <span className="absolute left-0 top-2 z-10 rounded-r-full bg-glow px-2 py-0.5 text-[11px] font-bold text-white shadow-soft">-{discount}%</span>}
                   <OverlayBadges p={p} />
@@ -289,8 +289,8 @@ export default function Catalog({ products, currency, search, banners, flash, ca
                     <div className="flex h-full w-full items-center justify-center p-3 text-center font-display text-sm font-semibold text-ink/60">{p.name}</div>
                   )}
                 </div>
-                <div className="flex flex-1 flex-col p-2">
-                  <h3 className="min-h-[2.5em] text-[12.5px] leading-[1.25] line-clamp-2 text-ink/85 transition group-hover:text-glowdark">{p.name}</h3>
+                <div className="p-2">
+                  <h3 className="text-[12.5px] leading-[1.25] line-clamp-2 text-ink/85 transition group-hover:text-glowdark">{p.name}</h3>
 
                   {/* qeemat + discount — Daraz ki tarah ek hi line mein */}
                   <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
