@@ -49,6 +49,15 @@ export default function BottomTabs({
             <span className="text-[10px] font-medium">Cart</span>
           </Link>
 
+          <Link href="/account"
+            className="flex flex-1 flex-col items-center gap-0.5 py-2 text-ink/50 transition hover:text-glow active:scale-95 active:text-glow">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="h-[22px] w-[22px]">
+              <circle cx="12" cy="8" r="4" /><path d="M4 21v-1a7 7 0 0 1 14 0v1" />
+            </svg>
+            <span className="text-[10px] font-medium">Account</span>
+          </Link>
+
           <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer"
             className="flex flex-1 flex-col items-center gap-0.5 py-2 text-ink/50 transition hover:text-glow active:scale-95 active:text-glow">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-[22px] w-[22px] text-leaf">

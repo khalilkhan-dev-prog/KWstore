@@ -3,12 +3,16 @@ import { query } from "@/lib/db";
 import { orderSchema } from "@/lib/validation";
 import { json, clientIp, sameOriginOk, rateLimit } from "@/lib/http";
 import { getAdminFromRequest } from "@/lib/auth";
+import { getCustomerFromRequest } from "@/lib/customer-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // PUBLIC: place an order
 export async function POST(req: NextRequest) {
+  // Agar customer logged in hai to order uske account se jur jata hai
+  const customer = getCustomerFromRequest(req);
+
   if (!sameOriginOk(req)) return json({ error: "Request blocked." }, 403);
   const ip = clientIp(req);
   if (!rateLimit(`order:${ip}`, 8, 60_000)) return json({ error: "Too many requests. Please wait." }, 429);
@@ -61,11 +65,12 @@ export async function POST(req: NextRequest) {
     : `${lines[0].name} + ${lines.length - 1} aur`;
 
   const r = await query<{ order_number: number; id: string }>(
-    `INSERT INTO orders (product_id,product_name,full_name,phone,address,city,quantity,unit_price,total_amount,notes,payment_method,payment_status,payment_reference,ip_address,item_count)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING order_number, id`,
+    `INSERT INTO orders (product_id,product_name,full_name,phone,address,city,quantity,unit_price,total_amount,notes,payment_method,payment_status,payment_reference,ip_address,item_count,customer_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING order_number, id`,
     [lines[0].product_id, summaryName, d.full_name, d.phone, d.address, d.city, totalQty,
      lines.length === 1 ? lines[0].price : 0, total,
-     d.notes || null, d.payment_method, payStatus, d.payment_reference || null, ip, lines.length]
+     d.notes || null, d.payment_method, payStatus, d.payment_reference || null, ip, lines.length,
+     customer?.id ?? null]
   );
 
   // Har cheez alag se mehfooz — admin isay poori tafseel ke sath dekh sakta hai

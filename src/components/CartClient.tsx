@@ -34,6 +34,24 @@ export default function CartClient({
   /* ---------------- form ---------------- */
   const [f, setF] = useState({ full_name: "", phone: "", address: "", city: "", notes: "", payment_reference: "" });
   const [method, setMethod] = useState<"cod" | "jazzcash" | "easypaisa" | "bank">("cod");
+
+  // Logged-in customer ki details khud bhar dein
+  useEffect(() => {
+    fetch("/api/account/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const c = d?.customer;
+        if (!c) return;
+        setF((prev) => ({
+          ...prev,
+          full_name: prev.full_name || c.full_name || "",
+          phone: prev.phone || c.phone || "",
+          address: prev.address || c.address || "",
+          city: prev.city || c.city || "",
+        }));
+      })
+      .catch(() => {});
+  }, []);
   const [err, setErr] = useState<string | null>(null);
   const [fieldErr, setFieldErr] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);

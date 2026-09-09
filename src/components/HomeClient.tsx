@@ -136,6 +136,9 @@ export default function HomeClient({ products, settings }: { products: ProductLi
               </a>
 
               <p className="mt-3 px-3 text-xs font-semibold uppercase tracking-wide text-ink/40">Store</p>
+              <Link href="/account" className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink/75 transition hover:bg-glow hover:text-white">
+                <span>👤</span> My account
+              </Link>
               <Link href="/about" className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink/75 transition hover:bg-glow hover:text-white">
                 <span>ℹ️</span> About us
               </Link>

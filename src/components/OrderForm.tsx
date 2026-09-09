@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { trackInitiateCheckout, trackPurchase } from "@/lib/track";
 
@@ -40,6 +40,18 @@ export default function OrderForm({
     { id: "bank", label: "Bank Account", icon: "🏦", detail: pay.bank_number ? `${pay.bank_number}  ·  ${pay.bank_title}` : "" },
   ];
   const PAY = PAY_ALL.filter((m) => m.id === "cod" || (m.detail && m.detail.trim() !== ""));
+
+  // Logged-in customer ki details khud bhar dein — Daraz ki tarah
+  const [me, setMe] = useState<{ full_name?: string; phone?: string; address?: string; city?: string } | null>(null);
+  useEffect(() => {
+    fetch("/api/account/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        setMe(d?.customer ?? null);
+        if (d?.customer?.phone) setPhone(d.customer.phone);
+      })
+      .catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -99,7 +111,7 @@ export default function OrderForm({
       </div>
 
       <div><label className="field-label" htmlFor="full_name">Full name</label>
-        <input id="full_name" name="full_name" className="field-input" placeholder="e.g. Ahmed Raza" required /></div>
+        <input id="full_name" name="full_name" className="field-input" placeholder="e.g. Ahmed Raza" defaultValue={me?.full_name ?? ""} key={`n${me?.full_name ?? ""}`} required /></div>
 
       <div><label className="field-label" htmlFor="phone">Phone number</label>
         <input id="phone" name="phone" inputMode="tel" value={phone} onChange={(e) => onPhoneChange(e.target.value)}
@@ -107,10 +119,10 @@ export default function OrderForm({
         {phoneError && <p className="mt-1 text-sm text-glowdark">{phoneError}</p>}</div>
 
       <div><label className="field-label" htmlFor="address">Complete address</label>
-        <textarea id="address" name="address" rows={2} className="field-input resize-none" placeholder="House #, street, area" required /></div>
+        <textarea id="address" name="address" rows={2} className="field-input resize-none" placeholder="House #, street, area" defaultValue={me?.address ?? ""} key={`a${me?.address ?? ""}`} required /></div>
 
       <div><label className="field-label" htmlFor="city">City</label>
-        <input id="city" name="city" className="field-input" placeholder="Lahore" required /></div>
+        <input id="city" name="city" className="field-input" placeholder="Lahore" defaultValue={me?.city ?? ""} key={`c${me?.city ?? ""}`} required /></div>
 
       <div><label className="field-label" htmlFor="quantity">Quantity</label>
         <div className="inline-flex items-center rounded-xl border border-ink/15 bg-white">
