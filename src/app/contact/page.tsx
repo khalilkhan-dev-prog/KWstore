@@ -21,13 +21,13 @@ export default async function Contact() {
 
   return (
     <PageShell storeName={name} whatsapp={wa} title="Contact us"
-      subtitle="Hum se rabta karne ke tareeqe">
+      subtitle="Ways to reach us">
 
       {wa && (
-        <Card title="💬 WhatsApp (sab se tez)">
-          <p className="text-sm">Order, delivery ya kisi bhi sawal ke liye — aksar 1 ghante mein jawab.</p>
+        <Card title="💬 WhatsApp (fastest)">
+          <p className="text-sm">For orders, delivery or any question — we usually reply within an hour.</p>
           <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer"
-            className="btn-primary mt-3 inline-block !py-2 text-sm">WhatsApp kholein</a>
+            className="btn-primary mt-3 inline-block !py-2 text-sm">Open WhatsApp</a>
         </Card>
       )}
 
@@ -55,7 +55,7 @@ export default async function Contact() {
       )}
 
       {socials.length > 0 && (
-        <Card title="Hamein follow karein">
+        <Card title="Follow us">
           <div className="flex flex-wrap gap-2">
             {socials.map((x) => (
               <a key={x.label} href={x.url} target="_blank" rel="noopener noreferrer"
@@ -67,8 +67,8 @@ export default async function Contact() {
         </Card>
       )}
 
-      <Card title="Kaam ke auqat">
-        <p className="text-sm">{s.working_hours || "Roz subah 10 baje se raat 10 baje tak"}</p>
+      <Card title="Opening hours">
+        <p className="text-sm">{s.working_hours || "Every day, 10:00 AM – 10:00 PM"}</p>
       </Card>
     </PageShell>
   );

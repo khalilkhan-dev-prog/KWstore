@@ -14,91 +14,91 @@ export default async function Policies() {
 
   return (
     <PageShell storeName={name} whatsapp={wa} title="Our policies"
-      subtitle="Order karne se pehle ye zaroor parh lein">
+      subtitle="Please read these before placing an order">
 
       <Card title="🚚 Delivery">
-        <p className="text-sm">{s.delivery_time || "Order confirm hone ke baad 2–5 kaam ke din."}</p>
+        <p className="text-sm">{s.delivery_time || "2–5 working days after your order is confirmed."}</p>
         <p className="text-sm">
-          Delivery Pakistan bhar mein hoti hai.{" "}
+          We deliver all over Pakistan.{" "}
           {fee > 0
-            ? `Delivery ka kharcha PKR ${fee.toLocaleString("en-PK")} hai.`
-            : "Delivery muft hai."}
+            ? `Delivery charges are PKR ${fee.toLocaleString("en-PK")}.`
+            : "Delivery is free."}
         </p>
         <p className="text-sm">
-          Bhejne se pehle hum WhatsApp par aap ka pata aur order confirm karte hain — is liye
-          apna phone number theek likhein.
+          Before shipping, we confirm your order and address on WhatsApp — so please make sure
+          your phone number is correct.
         </p>
       </Card>
 
       <Card title="💵 Payment">
         <p className="text-sm">
-          <b>Cash on Delivery:</b> saman haath mein le kar paise dein. Pehle kuch nahi bhejna parta.
+          <b>Cash on Delivery:</b> pay when the parcel reaches you. Nothing to send in advance.
         </p>
         {(s.pay_jazzcash || s.pay_easypaisa || s.pay_bank_number) && (
           <p className="text-sm">
-            <b>Advance payment:</b> JazzCash, Easypaisa ya bank transfer bhi qubool hai. Aise mein
-            payment ka screenshot WhatsApp par bhej dein.
+            <b>Advance payment:</b> we also accept JazzCash, Easypaisa and bank transfer. If you
+            pay in advance, please send us the payment screenshot on WhatsApp.
           </p>
         )}
       </Card>
 
-      <Card title="↩️ Wapsi aur badalna (Returns)">
+      <Card title="↩️ Returns &amp; exchanges">
         <p className="text-sm">
-          Saman milne ke <b>{days} din</b> ke andar wapsi ho sakti hai agar:
+          You can return an item within <b>{days} days</b> of delivery if:
         </p>
         <ul className="list-disc space-y-1 pl-5 text-sm">
-          <li>Saman toota hua ya kharab pohancha</li>
-          <li>Aap ko galat cheez, size ya rang mila</li>
-          <li>Saman us tasveer se saaf mukhtalif hai jo website par thi</li>
+          <li>It arrived damaged or faulty</li>
+          <li>You received the wrong item, size or colour</li>
+          <li>The item is clearly different from the photos on our website</li>
         </ul>
         <p className="mt-2 text-sm">
-          <b>Shart:</b> saman istemal na kiya gaya ho aur asli packing ke sath ho.
+          <b>Condition:</b> the item must be unused and in its original packaging.
         </p>
         <p className="text-sm">
-          <b>Tareeqa:</b> WhatsApp par apna order number aur saman ki tasveer bhejein. Hum 24 ghante
-          mein jawab de kar aage ka tareeqa bata denge.
+          <b>How to request:</b> send us your order number and a photo of the item on WhatsApp.
+          We reply within 24 hours with the next steps.
         </p>
         <p className="text-sm text-ink/50">
-          Note: sirf pasand na aane ki soorat mein wapsi ka kharcha customer ko dena hota hai.
+          Note: if you simply changed your mind, return shipping is paid by the customer.
         </p>
       </Card>
 
-      <Card title="❌ Order cancel karna">
+      <Card title="❌ Cancelling an order">
         <p className="text-sm">
-          Saman bhejne se pehle order kabhi bhi cancel ho sakta hai — bas WhatsApp par bata dein.
-          Bhejne ke baad cancel karna mumkin nahi, magar wapsi ka tareeqa upar likha hai.
+          You can cancel any time before the parcel is shipped — just message us on WhatsApp.
+          Once it has shipped it cannot be cancelled, but the return process above still applies.
         </p>
       </Card>
 
-      <Card title="🔒 Aap ki maloomat (Privacy)">
+      <Card title="🔒 Your privacy">
         <p className="text-sm">
-          Hum sirf wo maloomat lete hain jo saman bhejne ke liye zaroori hai: naam, phone number,
-          pata aur shehar.
+          We only collect what we need to deliver your order: your name, phone number, address
+          and city.
         </p>
         <ul className="list-disc space-y-1 pl-5 text-sm">
-          <li>Ye maloomat sirf aap ka order pohanchane ke liye istemal hoti hai</li>
-          <li>Hum aap ki maloomat kisi ko bechte ya kiraye par nahi dete</li>
-          <li>Courier ko sirf itna diya jata hai jitna parcel pohanchane ke liye zaroori hai</li>
-          <li>Hum aap ke card ya bank ki tafseel kabhi mehfooz nahi karte</li>
+          <li>This information is used only to deliver your order</li>
+          <li>We never sell or rent your information to anyone</li>
+          <li>Couriers receive only what they need to deliver the parcel</li>
+          <li>We never store your card or bank details</li>
         </ul>
         <p className="mt-2 text-sm">
-          Apni maloomat mitwana chahein to WhatsApp par bata dein — hum hata denge.
+          Want your details removed? Message us on WhatsApp and we will delete them.
         </p>
       </Card>
 
-      <Card title="⚖️ Qeematein aur maujoodgi">
+      <Card title="⚖️ Prices &amp; availability">
         <p className="text-sm">
-          Qeematein Pakistani Rupees mein hain aur bina ittila badal sakti hain. Kabhi aisa hota hai
-          ke order ke baad saman khatam ho jaye — us soorat mein hum foran WhatsApp par bata dete
-          hain aur agar aap ne advance diya ho to poora paisa wapas kar dete hain.
+          All prices are in Pakistani Rupees and may change without notice. Occasionally an item
+          sells out after an order is placed — if that happens we tell you straight away on
+          WhatsApp, and any advance payment is refunded in full.
         </p>
       </Card>
 
-      <Card title="Koi sawal?">
-        <p className="text-sm">In mein se koi baat samajh na aaye to poochh lein — bura nahi manenge.</p>
+      <Card title="Any questions?">
+        <p className="text-sm">If anything here is unclear, just ask — we are happy to explain.</p>
         {wa && (
           <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer"
-            className="btn-primary mt-3 inline-block !py-2 text-sm">💬 WhatsApp par poochhein</a>
+            className="btn-primary mt-3 inline-block !py-2 text-sm">💬 Ask on WhatsApp</a>
         )}
       </Card>
     </PageShell>

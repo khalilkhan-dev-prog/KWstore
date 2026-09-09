@@ -6,23 +6,23 @@ export default function DbDown({ message }: { message: string }) {
       <div className="w-full max-w-md rounded-xl2 border border-ink/10 bg-white p-6 text-center shadow-card">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-glow/10 text-2xl">🔌</div>
 
-        <h1 className="mt-4 font-display text-xl font-semibold">Store abhi load nahi ho raha</h1>
+        <h1 className="mt-4 font-display text-xl font-semibold">We couldn&apos;t load the store</h1>
         <p className="mt-2 text-sm text-ink/60">
-          Database se rabta nahi ban saka. Ye aksar tab hota hai jab internet dhima ho
-          ya database kuch der se be-istemal hone ki wajah se so gaya ho.
+          We couldn&apos;t reach our database. This usually happens when the connection is slow.
+          Please try again in a moment.
         </p>
 
         <div className="mt-4 rounded-xl bg-cream px-4 py-3 text-left text-xs text-ink/60">
-          <p className="font-semibold text-ink/70">Kya karein:</p>
+          <p className="font-semibold text-ink/70">What you can do:</p>
           <ol className="mt-1.5 list-decimal space-y-1 pl-4">
-            <li>Neeche wala button dabayein (1–2 baar)</li>
-            <li>Apna internet check karein</li>
-            <li>Phir bhi na chale to cmd mein: <code className="rounded bg-white px-1">node scripts/check-db.mjs</code></li>
+            <li>Tap the button below (once or twice)</li>
+            <li>Check your internet connection</li>
+            <li>Still stuck? Please contact us on WhatsApp</li>
           </ol>
         </div>
 
         <button onClick={() => window.location.reload()} className="btn-primary mt-4 w-full !py-2.5">
-          Dobara koshish karein
+          Try again
         </button>
 
         <details className="mt-3 text-left">

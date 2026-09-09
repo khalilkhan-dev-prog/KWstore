@@ -40,7 +40,7 @@ export default function CartClient({
   const set = (k: string, v: string) => setF({ ...f, [k]: v });
 
   const methods = [
-    { id: "cod" as const, label: "Cash on Delivery", hint: "Saman haath mein le kar paise dein", show: true },
+    { id: "cod" as const, label: "Cash on Delivery", hint: "Pay cash when your parcel arrives", show: true },
     { id: "jazzcash" as const, label: "JazzCash", hint: pay.jazzcash, show: !!pay.jazzcash },
     { id: "easypaisa" as const, label: "Easypaisa", hint: pay.easypaisa, show: !!pay.easypaisa },
     { id: "bank" as const, label: "Bank transfer", hint: [pay.bank_title, pay.bank_number].filter(Boolean).join(" · "), show: !!pay.bank_number },
@@ -72,7 +72,7 @@ export default function CartClient({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setErr(data.error ?? "Order nahi ja saka. Dobara koshish karein.");
+        setErr(data.error ?? "Could not place the order. Please try again.");
         if (data.fieldErrors) {
           const fe: Record<string, string> = {};
           for (const [k, v] of Object.entries(data.fieldErrors)) fe[k] = (v as string[])[0];
@@ -98,7 +98,7 @@ export default function CartClient({
       clearCart();
       router.push(`/order/success?n=${data.order_number ?? ""}`);
     } catch {
-      setErr("Internet ka masla lagta hai. Dobara koshish karein.");
+      setErr("Connection problem. Please try again.");
       setBusy(false);
     }
   }
@@ -126,9 +126,9 @@ export default function CartClient({
         ) : lines.length === 0 ? (
           <div className="mt-6 rounded-xl2 border border-ink/10 bg-white p-8 text-center">
             <div className="text-4xl">🛒</div>
-            <p className="mt-3 font-semibold">Cart khali hai</p>
+            <p className="mt-3 font-semibold">Your cart is empty</p>
             <p className="mt-1 text-sm text-ink/55">Products dekh kar &quot;Cart mein daalein&quot; dabayein.</p>
-            <Link href="/" className="btn-primary mt-5 inline-block">Shopping shuru karein</Link>
+            <Link href="/" className="btn-primary mt-5 inline-block">Start shopping</Link>
           </div>
         ) : (
           <>
@@ -170,7 +170,7 @@ export default function CartClient({
 
             {/* ---- total ---- */}
             <div className="mt-4 rounded-xl2 border border-ink/10 bg-white p-4 text-sm">
-              <div className="flex justify-between"><span className="text-ink/60">Saman</span><span>{fmt(subtotal)}</span></div>
+              <div className="flex justify-between"><span className="text-ink/60">Subtotal</span><span>{fmt(subtotal)}</span></div>
               <div className="mt-1 flex justify-between">
                 <span className="text-ink/60">Delivery</span>
                 <span>{shippingFee > 0 ? fmt(shippingFee) : <span className="text-leaf">Muft</span>}</span>
@@ -235,13 +235,13 @@ export default function CartClient({
 
                 <div>
                   <label className="field-label">Koi baat batani ho? (optional)</label>
-                  <input className="field-input" value={f.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Shaam ke baad call karein" />
+                  <input className="field-input" value={f.notes} onChange={(e) => set("notes", e.target.value)} placeholder="e.g. call after 5pm" />
                 </div>
 
                 {err && <div className="rounded-xl bg-glow/10 px-4 py-3 text-sm font-medium text-glowdark">{err}</div>}
 
                 <button type="submit" disabled={busy} className="btn-primary w-full disabled:opacity-60">
-                  {busy ? "Order ja raha hai…" : `Order karein — ${fmt(total)}`}
+                  {busy ? "Placing order…" : `Place order — ${fmt(total)}`}
                 </button>
                 <button type="button" onClick={() => setStep("cart")} className="btn-ghost w-full !py-2 text-sm">
                   ← Cart par wapas
