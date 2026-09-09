@@ -4,6 +4,7 @@ import OrderForm from "@/components/OrderForm";
 import ProductGallery from "@/components/ProductGallery";
 import { OverlayBadges, InfoBadges } from "@/components/Badges";
 import TrackView from "@/components/TrackView";
+import AddToCart from "@/components/AddToCart";
 import { getProductBySlug, getRelatedProducts, getSettings, imgUrl } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -73,6 +74,11 @@ export default async function ProductPage({ params }: { params: { slug: string }
               <li>🚚 Delivery all across Pakistan</li>
               <li>📞 We call to confirm every order</li>
             </ul>
+            <div className="mt-5">
+              <AddToCart id={product.id} slug={product.slug} name={product.name}
+                price={product.price} hasImage={product.has_image} inStock={product.stock > 0} />
+            </div>
+
             <div className="mt-5 rounded-xl2 bg-cream p-5 shadow-card md:p-6">
               <h2 className="mb-3 font-display text-xl font-semibold">Order now</h2>
               <OrderForm

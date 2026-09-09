@@ -7,6 +7,7 @@ import BottomTabs from "@/components/BottomTabs";
 import type { ProductListItem } from "@/lib/data";
 import { trackSearch } from "@/lib/track";
 import Link from "next/link";
+import CartCount from "@/components/CartCount";
 
 const FAQS = [
   { q: "How do I pay?", a: "Cash on delivery, or JazzCash / Easypaisa / Bank. No advance needed for COD." },
@@ -76,6 +77,15 @@ export default function HomeClient({ products, settings }: { products: ProductLi
             <button type="button" onClick={() => document.getElementById("grid")?.scrollIntoView({ behavior: "smooth" })}
               className="m-1 rounded-lg bg-glow px-3 py-1.5 text-sm font-semibold text-white hover:bg-glowdark">Search</button>
           </div>
+          <Link href="/cart" aria-label="Cart"
+            className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-ink/10 bg-white text-ink/70 transition hover:border-glow hover:text-glow">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+              <circle cx="9" cy="20" r="1.4" /><circle cx="18" cy="20" r="1.4" />
+              <path d="M2.5 3h2.2l2.3 11.2a1.6 1.6 0 0 0 1.6 1.3h8.5a1.6 1.6 0 0 0 1.6-1.3L21 7H6" />
+            </svg>
+            <CartCount className="absolute -right-1 -top-1" />
+          </Link>
+
           <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-leaf text-white shadow-sm transition hover:opacity-90">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">

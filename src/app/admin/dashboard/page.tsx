@@ -12,6 +12,8 @@ interface Order {
   status: string; payment_method: string; payment_status: string; payment_reference: string | null; created_at: string;
   confirm_sent_at: string | null; confirmed_at: string | null;
   courier: string | null; tracking_number: string | null; tracking_sent_at: string | null;
+  item_count: number;
+  items: { product_name: string; quantity: number; unit_price: number }[];
 }
 
 // Pakistan ke maash'hoor courier aur unke tracking safhe
@@ -106,7 +108,9 @@ export default function Dashboard() {
       `${shop.name || "Hamari shop"} se aap ka order mila hai. Shukriya!`,
       ``,
       `📦 Order #${o.order_number}`,
-      `${o.product_name} × ${o.quantity}`,
+      ...(o.items && o.items.length > 1
+        ? o.items.map((it) => `• ${it.product_name} × ${it.quantity}`)
+        : [`${o.product_name} × ${o.quantity}`]),
       `💰 Total: ${money}`,
       `${pay}`,
       ``,
@@ -149,7 +153,9 @@ export default function Dashboard() {
       `Assalam o Alaikum ${o.full_name} 👋`,
       `Aap ka order #${o.order_number} bhej diya gaya hai! 🚚`,
       ``,
-      `${o.product_name} × ${o.quantity}`,
+      ...(o.items && o.items.length > 1
+        ? o.items.map((it) => `• ${it.product_name} × ${it.quantity}`)
+        : [`${o.product_name} × ${o.quantity}`]),
       `Courier: ${c?.name || courier}`,
       `Tracking number: ${tracking}`,
       link ? `\nYahan se dekh sakte hain:\n${link}` : "",
@@ -220,11 +226,19 @@ export default function Dashboard() {
 
     <table class="items">
       <tr><th>Item</th><th class="qty">Qty</th><th class="amt">Amount</th></tr>
-      <tr>
-        <td>${esc(o.product_name)}</td>
-        <td class="qty">${esc(o.quantity)}</td>
-        <td class="amt">${esc(money)}</td>
-      </tr>
+      ${
+        o.items && o.items.length > 1
+          ? o.items.map((it) => `<tr>
+              <td>${esc(it.product_name)}</td>
+              <td class="qty">${esc(it.quantity)}</td>
+              <td class="amt">PKR ${(it.unit_price * it.quantity).toLocaleString("en-PK")}</td>
+            </tr>`).join("")
+          : `<tr>
+              <td>${esc(o.product_name)}</td>
+              <td class="qty">${esc(o.quantity)}</td>
+              <td class="amt">${esc(money)}</td>
+            </tr>`
+      }
       <tr class="total">
         <td colspan="2"><b>TOTAL</b></td>
         <td class="amt"><b>${esc(money)}</b></td>
@@ -396,7 +410,14 @@ ${list.map(slipHtml).join("")}
                 {orders.map((o) => (
                   <tr key={o.id} className="border-b border-ink/5 last:border-0">
                     <td className="p-3 font-semibold">{o.order_number}</td>
-                    <td className="p-3">{o.product_name} ×{o.quantity}</td>
+                    <td className="p-3">
+                      {o.product_name} <span className="text-ink/40">×{o.quantity}</span>
+                      {o.item_count > 1 && (
+                        <span className="ml-1 rounded-full bg-glow/12 px-1.5 py-0.5 text-[10px] font-semibold text-glowdark">
+                          {o.item_count} cheezein
+                        </span>
+                      )}
+                    </td>
                     <td className="p-3">{o.full_name}</td>
                     <td className="p-3">{o.phone}</td>
                     <td className="p-3">{o.city}</td>
@@ -448,7 +469,24 @@ ${list.map(slipHtml).join("")}
               <button onClick={() => setOpen(null)} className="text-ink/40 hover:text-ink">✕</button>
             </div>
             <div className="mt-4 space-y-1.5 text-sm">
-              <p><b>Product:</b> {open.product_name} × {open.quantity}</p>
+              {open.items && open.items.length > 1 ? (
+                <div className="rounded-xl border border-ink/12 bg-cream/60 p-3">
+                  <p className="text-sm font-semibold">{open.items.length} cheezein</p>
+                  <table className="mt-2 w-full text-sm">
+                    <tbody>
+                      {open.items.map((it, i) => (
+                        <tr key={i} className="border-b border-ink/8 last:border-0">
+                          <td className="py-1.5">{it.product_name}</td>
+                          <td className="py-1.5 text-center text-ink/50">×{it.quantity}</td>
+                          <td className="py-1.5 text-right font-medium">{fmt(it.unit_price * it.quantity)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p><b>Product:</b> {open.product_name} × {open.quantity}</p>
+              )}
               <p><b>Total:</b> {fmt(open.total_amount)}</p>
               <p><b>Name:</b> {open.full_name}</p>
               <p><b>Phone:</b> {open.phone}</p>

@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
+import CartCount from "@/components/CartCount";
+
 // App jaisa neeche wala tab bar — sirf mobile par dikhta hai.
 // (Daraz / Trendyol / Alibaba isi tarah karte hain.)
 
-export type Tab = "home" | "categories" | "search" | "help";
+export type Tab = "home" | "categories" | "search" | "cart" | "help";
 
 export default function BottomTabs({
   active, onHome, onCategories, onSearch, whatsapp,
@@ -30,6 +33,21 @@ export default function BottomTabs({
 
           <TabButton label="Search" active={active === "search"} onClick={onSearch}
             icon={<><circle cx="11" cy="11" r="7" /><path d="m20 20-3.6-3.6" /></>} />
+
+          <Link href="/cart"
+            className={`relative flex flex-1 flex-col items-center gap-0.5 py-2 transition hover:text-glow active:scale-95 active:text-glow ${
+              active === "cart" ? "text-glow" : "text-ink/50"
+            }`}>
+            <span className="relative">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="h-[22px] w-[22px]">
+                <circle cx="9" cy="20" r="1.4" /><circle cx="18" cy="20" r="1.4" />
+                <path d="M2.5 3h2.2l2.3 11.2a1.6 1.6 0 0 0 1.6 1.3h8.5a1.6 1.6 0 0 0 1.6-1.3L21 7H6" />
+              </svg>
+              <CartCount className="absolute -right-2 -top-1.5" />
+            </span>
+            <span className="text-[10px] font-medium">Cart</span>
+          </Link>
 
           <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer"
             className="flex flex-1 flex-col items-center gap-0.5 py-2 text-ink/50 transition hover:text-glow active:scale-95 active:text-glow">

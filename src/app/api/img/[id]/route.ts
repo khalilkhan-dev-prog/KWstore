@@ -23,9 +23,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       );
       dataUrl = rows[0]?.image_url ?? null;
     } else {
+      // JSONB array se nikalne ke liye NUMBER chahiye, text nahi —
+      // "gallery->>'0'" object ke liye hota hai, array ke liye kaam nahi karta.
       const { rows } = await query<{ img: string | null }>(
-        "SELECT gallery->>$2 AS img FROM products WHERE id = $1 LIMIT 1",
-        [params.id, String(i - 1)]
+        "SELECT gallery->>($2::int) AS img FROM products WHERE id = $1 LIMIT 1",
+        [params.id, i - 1]
       );
       dataUrl = rows[0]?.img ?? null;
     }

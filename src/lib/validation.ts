@@ -19,7 +19,13 @@ export const orderSchema = z.object({
   phone,
   address: z.string().trim().min(5, "Please enter your complete address").max(400).transform(sanitizeText),
   city: z.string().trim().min(2, "City is required").max(80).transform(sanitizeText),
-  quantity: z.coerce.number().int().min(1).max(100),
+  quantity: z.coerce.number().int().min(1).max(100).optional(),
+  // Cart wale order — kai product ek sath. Qeemat server par dobara
+  // check hoti hai, is liye yahan sirf id aur ginti chahiye.
+  items: z.array(z.object({
+    product_id: z.string().uuid(),
+    quantity: z.coerce.number().int().min(1).max(100),
+  })).min(1).max(30).optional(),
   notes: z.string().trim().max(500).transform(sanitizeText).optional().or(z.literal("")),
   payment_method: z.enum(["cod", "jazzcash", "easypaisa", "bank"]).default("cod"),
   payment_reference: z.string().trim().max(120).transform(sanitizeText).optional().or(z.literal("")),

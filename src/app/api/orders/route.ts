@@ -20,21 +20,63 @@ export async function POST(req: NextRequest) {
   const d = parsed.data;
   if (d.website) return json({ ok: true, order_number: 0 }, 200);
 
-  let productId: string | null = null, productName = "Product", unitPrice = 0;
-  if (d.product_id) {
-    const p = await query<{ id: string; name: string; price: string }>(
-      "SELECT id,name,price FROM products WHERE id=$1 AND is_active=TRUE", [d.product_id]);
-    if (p.rowCount) { productId = p.rows[0].id; productName = p.rows[0].name; unitPrice = Number(p.rows[0].price); }
+  /* ---- Kaun se product? Purana tareeqa (ek product) ya naya (cart) ---- */
+
+  type Line = { product_id: string | null; name: string; price: number; qty: number };
+  const lines: Line[] = [];
+
+  if (d.items && d.items.length) {
+    // CART: ek sath kai product
+    const ids = d.items.map((i) => i.product_id);
+    const { rows } = await query<{ id: string; name: string; price: string }>(
+      "SELECT id,name,price FROM products WHERE id = ANY($1::uuid[]) AND is_active = TRUE",
+      [ids]
+    );
+    const byId = new Map(rows.map((r) => [r.id, r]));
+    for (const it of d.items) {
+      const p = byId.get(it.product_id);
+      if (!p) continue; // product hat gaya ho to chhor dein
+      lines.push({ product_id: p.id, name: p.name, price: Number(p.price), qty: it.quantity });
+    }
+    if (!lines.length) return json({ error: "Cart ke products ab maujood nahi hain." }, 422);
+  } else {
+    // PURANA TAREEQA: ek hi product (product page se seedha order)
+    let productId: string | null = null, productName = "Product", unitPrice = 0;
+    if (d.product_id) {
+      const p = await query<{ id: string; name: string; price: string }>(
+        "SELECT id,name,price FROM products WHERE id=$1 AND is_active=TRUE", [d.product_id]);
+      if (p.rowCount) { productId = p.rows[0].id; productName = p.rows[0].name; unitPrice = Number(p.rows[0].price); }
+    }
+    lines.push({ product_id: productId, name: productName, price: unitPrice, qty: d.quantity ?? 1 });
   }
-  const total = unitPrice * d.quantity;
+
+  const total = lines.reduce((n, l) => n + l.price * l.qty, 0);
+  const totalQty = lines.reduce((n, l) => n + l.qty, 0);
   const payStatus = d.payment_method === "cod" ? "cod" : "pending";
 
-  const r = await query<{ order_number: number }>(
-    `INSERT INTO orders (product_id,product_name,full_name,phone,address,city,quantity,unit_price,total_amount,notes,payment_method,payment_status,payment_reference,ip_address)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING order_number`,
-    [productId, productName, d.full_name, d.phone, d.address, d.city, d.quantity, unitPrice, total,
-     d.notes || null, d.payment_method, payStatus, d.payment_reference || null, ip]
+  // Orders table mein KHULASA rakha jata hai, taake purana admin panel,
+  // print slip aur WhatsApp message bina badle chalte rahein.
+  const summaryName = lines.length === 1
+    ? lines[0].name
+    : `${lines[0].name} + ${lines.length - 1} aur`;
+
+  const r = await query<{ order_number: number; id: string }>(
+    `INSERT INTO orders (product_id,product_name,full_name,phone,address,city,quantity,unit_price,total_amount,notes,payment_method,payment_status,payment_reference,ip_address,item_count)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING order_number, id`,
+    [lines[0].product_id, summaryName, d.full_name, d.phone, d.address, d.city, totalQty,
+     lines.length === 1 ? lines[0].price : 0, total,
+     d.notes || null, d.payment_method, payStatus, d.payment_reference || null, ip, lines.length]
   );
+
+  // Har cheez alag se mehfooz — admin isay poori tafseel ke sath dekh sakta hai
+  for (const l of lines) {
+    await query(
+      `INSERT INTO order_items (order_id, product_id, product_name, unit_price, quantity)
+       VALUES ($1,$2,$3,$4,$5)`,
+      [r.rows[0].id, l.product_id, l.name, l.price, l.qty]
+    );
+  }
+
   return json({ ok: true, order_number: r.rows[0].order_number, total }, 201);
 }
 
@@ -55,7 +97,16 @@ export async function GET(req: NextRequest) {
   const { rows } = await query(
     `SELECT id,order_number,product_name,full_name,phone,address,city,quantity,total_amount::float8 AS total_amount,
             notes,status,payment_method,payment_status,payment_reference,created_at,
-            confirm_sent_at,confirmed_at,courier,tracking_number,tracking_sent_at
+            confirm_sent_at,confirmed_at,courier,tracking_number,tracking_sent_at,
+            COALESCE(item_count,1) AS item_count,
+            COALESCE((
+              SELECT json_agg(json_build_object(
+                       'product_name', oi.product_name,
+                       'quantity', oi.quantity,
+                       'unit_price', oi.unit_price::float8
+                     ) ORDER BY oi.created_at)
+                FROM order_items oi WHERE oi.order_id = orders.id
+            ), '[]'::json) AS items
        FROM orders ${whereSql} ORDER BY created_at DESC LIMIT 200`, params
   );
   return json({ orders: rows });
