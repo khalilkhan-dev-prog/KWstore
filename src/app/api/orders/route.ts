@@ -89,7 +89,10 @@ export async function POST(req: NextRequest) {
     "SELECT key,value FROM settings WHERE key='store_name'"
   ).catch(() => ({ rows: [] as { key: string; value: string }[] }));
 
-  sendNewOrderEmail({
+  // AHEM: yahan "await" zaroori hai.
+  // Vercel par jawab bhejte hi kaam band ho jata hai — is liye agar
+  // email ka intezaar na karein to wo beech mein hi kat jati hai.
+  await sendNewOrderEmail({
     orderNumber: r.rows[0].order_number,
     customerName: d.full_name,
     phone: d.phone,
@@ -102,7 +105,7 @@ export async function POST(req: NextRequest) {
     notes: d.notes,
     storeName: settings.rows[0]?.value || "Store",
     siteUrl: siteUrl(),
-  }).catch(() => {});
+  }).catch(() => {});   // email nakaam ho to bhi order mehfooz rehta hai
 
   return json({ ok: true, order_number: r.rows[0].order_number, total }, 201);
 }

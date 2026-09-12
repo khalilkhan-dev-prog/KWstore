@@ -76,9 +76,10 @@ export async function sendNewOrderEmail(o: OrderMail): Promise<void> {
   </div>`;
 
   try {
-    // 6 second se zyada intezaar nahi — order ka jawab is se ruknA nahi chahiye
+    // 4 second se zyada intezaar nahi. Email aksar 300ms mein chali jati hai,
+    // aur ye hadd is liye hai ke customer ka order kabhi na atke.
     const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 6000);
+    const t = setTimeout(() => ctrl.abort(), 4000);
 
     await fetch("https://api.resend.com/emails", {
       method: "POST",
