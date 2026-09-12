@@ -4,8 +4,60 @@ import OrderForm from "@/components/OrderForm";
 import ProductGallery from "@/components/ProductGallery";
 import { OverlayBadges, InfoBadges } from "@/components/Badges";
 import TrackView from "@/components/TrackView";
+import ProductJsonLd from "@/components/ProductJsonLd";
 import AddToCart from "@/components/AddToCart";
+import type { Metadata } from "next";
 import { getProductBySlug, getRelatedProducts, getSettings, imgUrl } from "@/lib/data";
+import { absolute, siteUrl } from "@/lib/site";
+
+
+/* -------------------------------------------------------------------
+   WhatsApp / Facebook / TikTok par link ka PREVIEW yahin se banta hai.
+   Iske bagair link sirf saada text dikhta hai — na photo, na qeemat.
+------------------------------------------------------------------- */
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  let product = null;
+  let settings: Record<string, string> = {};
+  try {
+    [product, settings] = await Promise.all([getProductBySlug(params.slug), getSettings()]);
+  } catch {}
+
+  if (!product) return { title: "Product not found" };
+
+  const store = settings.store_name || "KWstore";
+  const currency = settings.currency || "PKR";
+  const price = `${currency} ${product.price.toLocaleString("en-PK")}`;
+
+  // Preview mein qeemat likhna sab se zyada click laata hai
+  const title = `${product.name} — ${price}`;
+  const description =
+    (product.description?.trim() ||
+      `${product.name} available at ${store}.`) +
+    ` Cash on delivery all over Pakistan.`;
+
+  const url = absolute(`/product/${product.slug}`);
+  const image = product.has_image ? absolute(imgUrl(product.id, 0)) : undefined;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "website",
+      url,
+      siteName: store,
+      title,
+      description,
+      images: image ? [{ url: image, width: 1200, height: 1200, alt: product.name }] : undefined,
+    },
+    twitter: {
+      card: image ? "summary_large_image" : "summary",
+      title,
+      description,
+      images: image ? [image] : undefined,
+    },
+  };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +86,19 @@ export default async function ProductPage({ params }: { params: { slug: string }
   return (
     <main>
       <TrackView id={product.id} name={product.name} price={product.price} />
+
+      <ProductJsonLd
+        name={product.name}
+        description={product.description}
+        image={product.has_image ? absolute(imgUrl(product.id, 0)) : undefined}
+        url={absolute(`/product/${product.slug}`)}
+        price={product.price}
+        currency={currency}
+        inStock={(product.stock ?? 0) > 0}
+        rating={product.rating}
+        reviewCount={product.sold_count}
+        brand={storeName}
+      />
 
       <header className="sticky top-0 z-30 border-b border-ink/10 bg-cream/80 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">

@@ -1,11 +1,10 @@
-import { getSettings } from "@/lib/data";
+import { settingsFast } from "@/lib/site";
 import PageShell, { Card } from "@/components/PageShell";
 
 export const metadata = { title: "Policies" };
 
 export default async function Policies() {
-  let s: Record<string, string> = {};
-  try { s = await getSettings(); } catch {}
+  const s = await settingsFast();
 
   const name = s.store_name || "Our store";
   const wa = (s.support_whatsapp || "").replace(/[^0-9]/g, "");
