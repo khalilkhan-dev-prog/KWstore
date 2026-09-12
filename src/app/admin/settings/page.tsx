@@ -47,6 +47,7 @@ const EMPTY = {
   about_text: "", business_address: "", contact_email: "", contact_phone: "",
   instagram_url: "", facebook_url: "", tiktok_url: "",
   delivery_time: "", return_days: "7", working_hours: "",
+  google_verification: "",
   fb_pixel_id: "", tiktok_pixel_id: "", ga_id: "",
   flash_on: "0", flash_title: "Flash Sale", flash_subtitle: "Limited stock · limited time",
   flash_ends: "", flash_repeat_hours: "0",
@@ -349,6 +350,16 @@ export default function AdminSettings() {
                     placeholder="CXXXXXXXXXXXXXXXXX" />
                   <p className="mt-1 text-xs text-ink/45">
                     TikTok Ads Manager → Tools → Events → Web Events → Pixel ID.
+                  </p>
+                </div>
+
+                <div className="mt-3"><label className="field-label">Google Search Console — verification code</label>
+                  <input className="field-input" value={form.google_verification}
+                    onChange={(e) => set("google_verification", e.target.value.trim())}
+                    placeholder="ae1af5cc59948b6e" />
+                  <p className="mt-1 text-xs text-ink/45">
+                    Search Console mein &quot;HTML tag&quot; wala tareeqa chunein. Jo tag mile us mein se
+                    sirf content=&quot;...&quot; ke andar wali likhai yahan paste karein — poora tag nahi.
                   </p>
                 </div>
 

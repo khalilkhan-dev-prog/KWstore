@@ -32,6 +32,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: { card: "summary_large_image", title: `${name} — ${tagline}`, description: desc },
     robots: { index: true, follow: true },
+    // Google Search Console ka tasdeeq wala code (Settings se aata hai)
+    verification: s.google_verification ? { google: s.google_verification } : undefined,
   };
 }
 

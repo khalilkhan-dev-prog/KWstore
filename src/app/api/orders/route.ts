@@ -4,6 +4,8 @@ import { orderSchema } from "@/lib/validation";
 import { json, clientIp, sameOriginOk, rateLimit } from "@/lib/http";
 import { getAdminFromRequest } from "@/lib/auth";
 import { getCustomerFromRequest } from "@/lib/customer-auth";
+import { sendNewOrderEmail } from "@/lib/notify";
+import { siteUrl } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -81,6 +83,26 @@ export async function POST(req: NextRequest) {
       [r.rows[0].id, l.product_id, l.name, l.price, l.qty]
     );
   }
+
+  // Maalik ko ittila — order ka jawab is ka intezaar nahi karta
+  const settings = await query<{ key: string; value: string }>(
+    "SELECT key,value FROM settings WHERE key='store_name'"
+  ).catch(() => ({ rows: [] as { key: string; value: string }[] }));
+
+  sendNewOrderEmail({
+    orderNumber: r.rows[0].order_number,
+    customerName: d.full_name,
+    phone: d.phone,
+    city: d.city,
+    address: d.address,
+    items: lines.map((l) => ({ name: l.name, qty: l.qty, price: l.price * l.qty })),
+    total,
+    paymentMethod: d.payment_method,
+    paymentStatus: payStatus,
+    notes: d.notes,
+    storeName: settings.rows[0]?.value || "Store",
+    siteUrl: siteUrl(),
+  }).catch(() => {});
 
   return json({ ok: true, order_number: r.rows[0].order_number, total }, 201);
 }
