@@ -16,6 +16,7 @@ export default function AdminNav() {
         <nav className="mt-4 space-y-1">
           {link("/admin/dashboard", "📋 Orders")}
           {link("/admin/products", "📦 Products")}
+          {link("/admin/coupons", "🎟️ Coupons")}
           {link("/admin/settings", "⚙️ Settings")}
           <Link href="/" className="block rounded-lg px-3 py-2 text-sm font-medium text-ink/70 hover:bg-ink/5">🛍️ View store</Link>
         </nav>

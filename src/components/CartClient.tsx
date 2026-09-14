@@ -29,7 +29,30 @@ export default function CartClient({
 
   const fmt = (n: number) => `${currency} ${n.toLocaleString("en-PK")}`;
   const subtotal = cartTotal(lines);
-  const total = subtotal + (lines.length ? shippingFee : 0);
+
+  // ---- coupon ----
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discount: number; label: string } | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
+  const [couponMsg, setCouponMsg] = useState<string | null>(null);
+
+  async function applyCoupon() {
+    if (!couponInput.trim()) return;
+    setCouponBusy(true); setCouponMsg(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponInput, subtotal }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (d.ok) { setCoupon({ code: d.code, discount: d.discount, label: d.label }); setCouponMsg(null); }
+      else { setCoupon(null); setCouponMsg(d.error ?? "This code is not valid."); }
+    } catch { setCouponMsg("Could not check the code."); }
+    setCouponBusy(false);
+  }
+
+  const discount = coupon?.discount ?? 0;
+  const total = Math.max(0, subtotal - discount) + (lines.length ? shippingFee : 0);
 
   /* ---------------- form ---------------- */
   const [f, setF] = useState({ full_name: "", phone: "", address: "", city: "", notes: "", payment_reference: "" });
@@ -82,6 +105,7 @@ export default function CartClient({
       const res = await fetch("/api/orders", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          coupon_code: coupon?.code ?? "",
           items: lines.map((l) => ({ product_id: l.id, quantity: l.qty })),
           full_name: f.full_name, phone: f.phone.replace(/[^0-9]/g, ""),
           address: f.address, city: f.city, notes: f.notes,
@@ -189,6 +213,37 @@ export default function CartClient({
             {/* ---- total ---- */}
             <div className="mt-4 rounded-xl2 border border-ink/10 bg-white p-4 text-sm">
               <div className="flex justify-between"><span className="text-ink/60">Subtotal</span><span>{fmt(subtotal)}</span></div>
+
+              {/* ---- coupon ---- */}
+              {coupon ? (
+                <div className="flex items-center justify-between rounded-xl bg-leaf/10 px-3 py-2">
+                  <span className="flex items-center gap-2 text-sm font-medium text-leaf">
+                    🎟️ {coupon.code} <span className="font-normal text-leaf/70">({coupon.label})</span>
+                  </span>
+                  <button type="button" onClick={() => { setCoupon(null); setCouponInput(""); }}
+                    className="text-xs font-medium text-ink/45 hover:text-glowdark">Remove</button>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex gap-2">
+                    <input value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ""))}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCoupon(); } }}
+                      placeholder="Discount code" className="field-input !py-2 font-mono text-sm uppercase" />
+                    <button type="button" onClick={applyCoupon} disabled={couponBusy || !couponInput}
+                      className="shrink-0 rounded-full border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink/70 transition hover:border-glow hover:bg-glow hover:text-white disabled:opacity-40">
+                      {couponBusy ? "…" : "Apply"}
+                    </button>
+                  </div>
+                  {couponMsg && <p className="mt-1.5 text-xs font-medium text-glowdark">{couponMsg}</p>}
+                </div>
+              )}
+
+              {discount > 0 && (
+                <div className="flex justify-between text-leaf">
+                  <span>Discount</span><span>− {fmt(discount)}</span>
+                </div>
+              )}
               <div className="mt-1 flex justify-between">
                 <span className="text-ink/60">Delivery</span>
                 <span>{shippingFee > 0 ? fmt(shippingFee) : <span className="text-leaf">Muft</span>}</span>

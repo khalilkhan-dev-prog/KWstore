@@ -6,6 +6,7 @@ import { getAdminFromRequest } from "@/lib/auth";
 import { getCustomerFromRequest } from "@/lib/customer-auth";
 import { sendNewOrderEmail } from "@/lib/notify";
 import { siteUrl } from "@/lib/site";
+import { checkCoupon, markCouponUsed } from "@/lib/coupons";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -56,7 +57,19 @@ export async function POST(req: NextRequest) {
     lines.push({ product_id: productId, name: productName, price: unitPrice, qty: d.quantity ?? 1 });
   }
 
-  const total = lines.reduce((n, l) => n + l.price * l.qty, 0);
+  const subtotal = lines.reduce((n, l) => n + l.price * l.qty, 0);
+
+  // Coupon SERVER par dobara jaancha jata hai — browser ka bheja hua
+  // hisaab kabhi qubool nahi kiya jata.
+  let couponCode: string | null = null;
+  let discount = 0;
+  if (d.coupon_code) {
+    const c = await checkCoupon(String(d.coupon_code), subtotal);
+    if (c.ok) { couponCode = c.code; discount = c.discount; }
+    // Coupon galat ho to order phir bhi lagta hai — bas chhoot nahi milti
+  }
+
+  const total = Math.max(0, subtotal - discount);
   const totalQty = lines.reduce((n, l) => n + l.qty, 0);
   const payStatus = d.payment_method === "cod" ? "cod" : "pending";
 
@@ -67,12 +80,12 @@ export async function POST(req: NextRequest) {
     : `${lines[0].name} + ${lines.length - 1} aur`;
 
   const r = await query<{ order_number: number; id: string }>(
-    `INSERT INTO orders (product_id,product_name,full_name,phone,address,city,quantity,unit_price,total_amount,notes,payment_method,payment_status,payment_reference,ip_address,item_count,customer_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING order_number, id`,
+    `INSERT INTO orders (product_id,product_name,full_name,phone,address,city,quantity,unit_price,total_amount,notes,payment_method,payment_status,payment_reference,ip_address,item_count,customer_id,coupon_code,discount_amount)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING order_number, id`,
     [lines[0].product_id, summaryName, d.full_name, d.phone, d.address, d.city, totalQty,
      lines.length === 1 ? lines[0].price : 0, total,
      d.notes || null, d.payment_method, payStatus, d.payment_reference || null, ip, lines.length,
-     customer?.id ?? null]
+     customer?.id ?? null, couponCode, discount]
   );
 
   // Har cheez alag se mehfooz — admin isay poori tafseel ke sath dekh sakta hai
@@ -83,6 +96,8 @@ export async function POST(req: NextRequest) {
       [r.rows[0].id, l.product_id, l.name, l.price, l.qty]
     );
   }
+
+  if (couponCode) await markCouponUsed(couponCode);
 
   // Maalik ko ittila — order ka jawab is ka intezaar nahi karta
   const settings = await query<{ key: string; value: string }>(
@@ -107,7 +122,7 @@ export async function POST(req: NextRequest) {
     siteUrl: siteUrl(),
   }).catch(() => {});   // email nakaam ho to bhi order mehfooz rehta hai
 
-  return json({ ok: true, order_number: r.rows[0].order_number, total }, 201);
+  return json({ ok: true, order_number: r.rows[0].order_number, total, discount, coupon: couponCode }, 201);
 }
 
 // ADMIN: list orders

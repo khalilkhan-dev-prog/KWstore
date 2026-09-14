@@ -29,6 +29,7 @@ export const orderSchema = z.object({
   notes: z.string().trim().max(500).transform(sanitizeText).optional().or(z.literal("")),
   payment_method: z.enum(["cod", "jazzcash", "easypaisa", "bank"]).default("cod"),
   payment_reference: z.string().trim().max(120).transform(sanitizeText).optional().or(z.literal("")),
+  coupon_code: z.string().trim().max(30).optional().or(z.literal("")),
   website: z.string().max(0).optional(), // honeypot
 });
 export type OrderInput = z.infer<typeof orderSchema>;
